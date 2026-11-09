@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ARTHA AI — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#080c10;--surface:#0e1318;--surface2:#141b22;--border:#1e2a34;
+  --accent:#00d4aa;--accent2:#0099ff;--red:#ef4444;--green:#22c55e;
+  --yellow:#f59e0b;--text:#e2e8f0;--muted:#64748b;
+  --mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--sans);
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;position:relative;
+}
+
+/* Animated background grid */
+.bg-grid{
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(0,212,170,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,212,170,.03) 1px,transparent 1px);
+  background-size:48px 48px;
+  animation:gridMove 20s linear infinite;
+  pointer-events:none;
+}
+@keyframes gridMove{0%{transform:translate(0,0)}100%{transform:translate(48px,48px)}}
+
+/* Glowing orbs */
+.orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:.12;pointer-events:none;}
+.orb1{width:500px;height:500px;background:var(--accent);top:-150px;left:-150px;animation:float1 8s ease-in-out infinite;}
+.orb2{width:400px;height:400px;background:var(--accent2);bottom:-100px;right:-100px;animation:float2 10s ease-in-out infinite;}
+@keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,30px)}}
+@keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-20px,-20px)}}
+
+.wrapper{
+  position:relative;z-index:10;width:100%;max-width:440px;padding:24px;
+}
+
+/* Logo */
+.logo{text-align:center;margin-bottom:32px;}
+.logo-text{
+  font-size:32px;font-weight:800;letter-spacing:-1px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  --webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  display:inline-block;
+}
+.logo-sub{
+  font-size:11px;color:var(--muted);font-family:var(--mono);
+  letter-spacing:3px;text-transform:uppercase;margin-top:4px;
+}
+.logo-badge{
+  display:inline-block;margin-top:10px;padding:3px 12px;
+  border:1px solid rgba(0,212,170,.3);border-radius:20px;
+  font-size:10px;font-family:var(--mono);color:var(--accent);
+  background:rgba(0,212,170,.05);
+}
+
+/* Card */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;padding:32px;
+  box-shadow:0 24px 64px rgba(0,0,0,.4),0 0 0 1px rgba(0,212,170,.05);
+}
+
+/* Tabs */
+.tabs{display:flex;gap:0;margin-bottom:28px;border-bottom:1px solid var(--border);}
+.tab{
+  flex:1;padding:10px;text-align:center;font-size:13px;font-weight:700;
+  cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;
+  margin-bottom:-1px;transition:all .2s;
+}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab:hover:not(.active){color:var(--text);}
+
+/* Forms */
+.form{display:none;}
+.form.active{display:block;}
+.form-group{margin-bottom:18px;}
+.form-group label{
+  display:block;font-size:11px;color:var(--muted);
+  font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;
+  margin-bottom:7px;
+}
+.form-group input{
+  width:100%;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);padding:11px 14px;border-radius:9px;
+  font-family:var(--mono);font-size:13px;outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.form-group input:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(0,212,170,.1);
+}
+.form-group input::placeholder{color:var(--muted);}
+
+.btn{
+  width:100%;padding:13px;border:none;border-radius:9px;
+  font-family:var(--sans);font-size:14px;font-weight:800;
+  cursor:pointer;transition:all .2s;letter-spacing:.3px;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--accent),#00b894);
+  color:#000;
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,212,170,.3);}
+.btn-primary:active{transform:translateY(0);}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+/* Error/success messages */
+.msg{
+  padding:10px 14px;border-radius:8px;font-size:12px;
+  font-family:var(--mono);margin-bottom:16px;display:none;
+}
+.msg.error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;}
+.msg.success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#4ade80;}
+.msg.show{display:block;}
+
+/* Divider */
+.divider{
+  text-align:center;font-size:11px;color:var(--muted);
+  font-family:var(--mono);margin:20px 0;position:relative;
+}
+.divider::before,.divider::after{
+  content:'';position:absolute;top:50%;width:40%;
+  height:1px;background:var(--border);
+}
+.divider::before{left:0;}
+.divider::after{right:0;}
+
+/* Features row */
+.features{
+  display:flex;gap:8px;margin-top:24px;justify-content:center;
+}
+.feat{
+  font-size:10px;font-family:var(--mono);color:var(--muted);
+  padding:4px 10px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:6px;
+}
+
+/* Spinner */
+.spinner{
+  display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,.3);
+  border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite;
+  vertical-align:middle;margin-right:6px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Password toggle */
+.pw-wrap{position:relative;}
+.pw-wrap input{padding-right:40px;}
+.pw-toggle{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;color:var(--muted);
+  padding:4px;transition:color .2s;
+}
+.pw-toggle:hover{color:var(--text);}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<div class="wrapper">
+  <div class="logo">
+    <div class="logo-text">ARTHA AI</div>
+    <div class="logo-sub">Trading Intelligence System</div>
+    <div class="logo-badge">🔐 Secure Multi-User Platform</div>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <div class="tab active" id="loginTab" onclick="switchTab('login')">Sign In</div>
+      <div class="tab" id="registerTab" onclick="switchTab('register')">Create Account</div>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div class="form active" id="loginForm">
+      <div class="msg" id="loginMsg"></div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password"
+                 onkeydown="if(event.key==='Enter')doLogin()"/>
+          <button class="pw-toggle" onclick="togglePw('loginPassword',this)" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="loginBtn" onclick="doLogin()">Sign In to ARTHA</button>
+      <div class="divider">or</div>
+      <div style="text-align:center;font-size:12px;color:var(--muted)">
+        New to ARTHA? <span style="color:var(--accent);cursor:pointer;font-weight:700" onclick="switchTab('register')">Create an account →</span>
+      </div>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div class="form" id="registerForm">
+      <div class="msg" id="registerMsg"></div>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="regName" placeholder="Ravi Kumar" autocomplete="name"/>
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+      <div class="form-group">
+        <label>Password <span style="color:var(--muted);font-weight:400">(min 6 chars)</span></label>
+        <div class="pw-wrap">
+          <input type="password" id="regPassword" placeholder="Create a strong password"
+                 onkeydown="if(event.key==='Enter')doRegister()"/>
+          <button class="pw-toggle" onclick="togglePw('regPassword',this)" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="registerBtn" onclick="doRegister()">Create Account</button>
+      <div class="divider">or</div>
+      <div style="text-align:center;font-size:12px;color:var(--muted)">
+        Already have an account? <span style="color:var(--accent);cursor:pointer;font-weight:700" onclick="switchTab('login')">Sign in →</span>
+      </div>
+    </div>
+
+    <div class="features">
+      <span class="feat">📊 Live Portfolio</span>
+      <span class="feat">🤖 AI Signals</span>
+      <span class="feat">🔒 Encrypted Keys</span>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:20px;font-size:11px;color:var(--muted);font-family:var(--mono)">
+    Your broker API keys are stored encrypted · Data never shared
+  </div>
+</div>
+
+<script>
+// If already logged in, redirect to dashboard
+const existingToken = localStorage.getItem('artha_token');
+if(existingToken){
+  // Verify token is still valid
+  fetch('/api/auth/me', {headers:{'Authorization':'Bearer '+existingToken}})
+    .then(r => { if(r.ok) window.location.href='/'; })
+    .catch(() => {});
+}
+
+function switchTab(tab){
+  document.getElementById('loginTab').classList.toggle('active', tab==='login');
+  document.getElementById('registerTab').classList.toggle('active', tab==='register');
+  document.getElementById('loginForm').classList.toggle('active', tab==='login');
+  document.getElementById('registerForm').classList.toggle('active', tab==='register');
+  clearMsgs();
+}
+
+function showMsg(id, msg, type='error'){
+  const el=document.getElementById(id);
+  el.textContent=msg; el.className='msg '+type+' show';
+}
+
+function clearMsgs(){
+  ['loginMsg','registerMsg'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.className='msg'; el.textContent='';
+  });
+}
+
+function togglePw(inputId, btn){
+  const inp=document.getElementById(inputId);
+  const isText=inp.type==='text';
+  inp.type=isText?'password':'text';
+  btn.style.color=isText?'var(--muted)':'var(--accent)';
+}
+
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const password=document.getElementById('loginPassword').value;
+  if(!email||!password){showMsg('loginMsg','Please fill in all fields');return;}
+  const btn=document.getElementById('loginBtn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span>Signing in...';
+  try{
+    const res=await fetch('/api/auth/login',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,password})
+    });
+    const data=await res.json();
+    if(!res.ok){showMsg('loginMsg',data.detail||'Invalid email or password');return;}
+    localStorage.setItem('artha_token', data.token);
+    localStorage.setItem('artha_user', JSON.stringify(data.user));
+    showMsg('loginMsg','Welcome back, '+data.user.name+'! Redirecting...','success');
+    setTimeout(()=>window.location.href='/',800);
+  }catch(e){
+    showMsg('loginMsg','Connection error — is the server running?');
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML='Sign In to ARTHA';
+  }
+}
+
+async function doRegister(){
+  const name=document.getElementById('regName').value.trim();
+  const email=document.getElementById('regEmail').value.trim();
+  const password=document.getElementById('regPassword').value;
+  if(!name||!email||!password){showMsg('registerMsg','Please fill in all fields');return;}
+  if(password.length<6){showMsg('registerMsg','Password must be at least 6 characters');return;}
+  const btn=document.getElementById('registerBtn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span>Creating account...';
+  try{
+    const res=await fetch('/api/auth/register',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,email,password})
+    });
+    const data=await res.json();
+    if(!res.ok){showMsg('registerMsg',data.detail||'Registration failed');return;}
+    localStorage.setItem('artha_token', data.token);
+    localStorage.setItem('artha_user', JSON.stringify(data.user));
+    showMsg('registerMsg','Account created! Welcome, '+data.user.name+'!','success');
+    setTimeout(()=>window.location.href='/',800);
+  }catch(e){
+    showMsg('registerMsg','Connection error — is the server running?');
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML='Create Account';
+  }
+}
+</script>
+</body>
+</html>

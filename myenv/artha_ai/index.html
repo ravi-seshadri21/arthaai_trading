@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ARTHA AI — Trading System</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#080c10;--surface:#0e1318;--surface2:#141b22;--border:#1e2a34;--accent:#00d4aa;--accent2:#0099ff;--upstox:#7c3aed;--groww:#059669;--coindcx:#d97706;--red:#ef4444;--green:#22c55e;--yellow:#f59e0b;--text:#e2e8f0;--muted:#64748b;--mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box;}body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;}
+::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;}
+.logo{padding:22px 20px 18px;border-bottom:1px solid var(--border);}
+.logo-text{font-size:22px;font-weight:800;letter-spacing:-0.5px;background:linear-gradient(135deg,var(--accent),var(--accent2));--webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo-sub{font-size:10px;color:var(--muted);font-family:var(--mono);letter-spacing:2px;margin-top:2px;}
+.nav{flex:1;padding:14px 0;overflow-y:auto;}
+.nav-section{padding:8px 16px 4px;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-family:var(--mono);}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);border-left:3px solid transparent;transition:all .15s;}
+.nav-item:hover{color:var(--text);background:var(--surface2);}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(0,212,170,.05);}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;}
+.nav-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;font-family:var(--mono);}
+.sidebar-footer{padding:14px 20px;border-top:1px solid var(--border);}
+.live-badge{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--green);}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.main{margin-left:220px;min-height:100vh;}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(8,12,16,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:13px 28px;display:flex;align-items:center;justify-content:space-between;}
+.page-title{font-size:18px;font-weight:700;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.content{padding:22px 28px;}
+.page{display:none;}.page.active{display:block;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;}
+.card-title{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-family:var(--mono);margin-bottom:14px;}
+/* PLATFORM CARDS */
+.platform-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:22px;}
+.platform-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.platform-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.platform-card.upstox::before{background:var(--upstox);}
+.platform-card.groww::before{background:var(--groww);}
+.platform-card.coindcx::before{background:var(--coindcx);}
+.platform-card:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 8px 32px rgba(0,212,170,.08);}
+.platform-card.selected{border-color:var(--accent);background:rgba(0,212,170,.04);}
+.pc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.pc-name{font-size:15px;font-weight:700;}
+.pc-badge{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:4px;font-weight:600;}
+.upstox .pc-badge{background:rgba(124,58,237,.2);color:#a78bfa;}
+.groww .pc-badge{background:rgba(5,150,105,.2);color:#34d399;}
+.coindcx .pc-badge{background:rgba(217,119,6,.2);color:#fbbf24;}
+.auto-on{width:8px;height:8px;border-radius:50%;background:var(--green);margin-left:6px;display:inline-block;animation:pulse 1.5s infinite;}
+.pc-amount{font-size:24px;font-weight:800;font-family:var(--mono);margin-bottom:4px;}
+.pc-sub{font-size:12px;color:var(--muted);font-family:var(--mono);}
+.pc-pnl{margin-top:12px;display:flex;align-items:center;gap:8px;}
+.pnl-val{font-size:13px;font-weight:700;font-family:var(--mono);}
+.pnl-pct{font-size:11px;padding:2px 7px;border-radius:4px;font-family:var(--mono);font-weight:600;}
+.pnl-pos{color:var(--green);}.pnl-pos .pnl-pct{background:rgba(34,197,94,.15);color:var(--green);}
+.pnl-neg{color:var(--red);}.pnl-neg .pnl-pct{background:rgba(239,68,68,.15);color:var(--red);}
+.pc-click-hint{font-size:10px;color:var(--muted);margin-top:8px;font-family:var(--mono);}
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;}
+.stat-label{font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:1px;margin-bottom:8px;}
+.stat-value{font-size:22px;font-weight:800;font-family:var(--mono);}
+.stat-value.green{color:var(--green);}.stat-value.red{color:var(--red);}.stat-value.blue{color:var(--accent2);}
+/* PLATFORM DETAIL */
+.platform-detail{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:22px;overflow:hidden;display:none;}
+.platform-detail.visible{display:block;}
+.pd-header{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.pd-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:10px;}
+.pd-dot{width:10px;height:10px;border-radius:50%;}
+.pd-close{background:none;border:1px solid var(--border);color:var(--muted);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.pd-close:hover{border-color:var(--red);color:var(--red);}
+/* TICKER */
+.ticker-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:22px;}
+.ticker-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:13px 15px;transition:border-color .15s;cursor:pointer;}
+.ticker-card:hover{border-color:var(--accent);}
+.tk-asset{font-size:12px;font-weight:700;margin-bottom:5px;}
+.tk-price{font-family:var(--mono);font-size:15px;font-weight:600;}
+.tk-change{font-family:var(--mono);font-size:11px;margin-top:3px;}
+/* TABLE */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead tr{border-bottom:1px solid var(--border);}
+thead th{padding:11px 14px;text-align:left;font-size:10px;color:var(--muted);font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;}
+tbody tr{border-bottom:1px solid rgba(30,42,52,.5);transition:background .1s;}
+tbody tr:hover{background:rgba(255,255,255,.02);}
+tbody td{padding:12px 14px;font-family:var(--mono);font-size:12px;}
+.td-asset{font-weight:700;color:var(--text);font-family:var(--sans);font-size:13px;}
+.td-platform{font-size:11px;padding:3px 8px;border-radius:4px;font-weight:600;}
+.td-platform.Upstox{background:rgba(124,58,237,.15);color:#a78bfa;}
+.td-platform.Groww{background:rgba(5,150,105,.15);color:#34d399;}
+.td-platform.CoinDCX{background:rgba(217,119,6,.15);color:#fbbf24;}
+.td-buy{color:var(--green);font-weight:700;}.td-sell{color:var(--red);font-weight:700;}.td-hold{color:var(--accent2);font-weight:700;}
+.td-pos{color:var(--green);}.td-neg{color:var(--red);}
+/* BUTTONS */
+.btn{padding:9px 18px;border-radius:8px;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:700;border:none;transition:all .15s;}
+.btn-primary{background:var(--accent);color:#000;}.btn-primary:hover{background:#00f0c0;transform:translateY(-1px);}
+.btn-secondary{background:var(--surface2);border:1px solid var(--border);color:var(--text);}.btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+.btn-danger{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:var(--red);}.btn-danger:hover{background:rgba(239,68,68,.25);}
+.btn-success{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:var(--green);}.btn-success:hover{background:rgba(34,197,94,.25);}
+.btn-warn{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:var(--yellow);}.btn-warn:hover{background:rgba(245,158,11,.25);}
+/* INPUTS */
+.select-input,.text-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 13px;border-radius:8px;font-family:var(--sans);font-size:13px;outline:none;transition:border-color .15s;}
+.select-input:focus,.text-input:focus{border-color:var(--accent);}
+/* AI PANEL */
+.ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.signal-result{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:18px;display:none;}
+.signal-result.visible{display:block;}
+.signal-badge{display:inline-block;font-size:20px;font-weight:800;padding:6px 16px;border-radius:8px;margin-bottom:12px;font-family:var(--mono);}
+.signal-BUY{background:rgba(34,197,94,.2);color:var(--green);border:1px solid rgba(34,197,94,.3);}
+.signal-SELL{background:rgba(239,68,68,.2);color:var(--red);border:1px solid rgba(239,68,68,.3);}
+.signal-HOLD{background:rgba(0,153,255,.2);color:var(--accent2);border:1px solid rgba(0,153,255,.3);}
+.signal-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0;}
+.signal-item label{font-size:10px;color:var(--muted);font-family:var(--mono);display:block;margin-bottom:3px;}
+.signal-item span{font-family:var(--mono);font-size:14px;font-weight:600;}
+.confidence-bar{height:5px;background:var(--border);border-radius:3px;margin:8px 0;}
+.confidence-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent2),var(--accent));}
+/* CHAT */
+.chat-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;height:360px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;margin-bottom:12px;}
+.msg{max-width:85%;padding:10px 14px;border-radius:10px;font-size:13px;line-height:1.5;}
+.msg-user{background:rgba(0,212,170,.12);border:1px solid rgba(0,212,170,.2);align-self:flex-end;}
+.msg-ai{background:var(--surface);border:1px solid var(--border);align-self:flex-start;}
+.msg-label{font-size:10px;font-family:var(--mono);color:var(--muted);margin-bottom:4px;}
+.chat-input-row{display:flex;gap:10px;}.chat-input-row .text-input{flex:1;}
+/* KEYS */
+.keys-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.key-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;}
+.key-header{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+.key-dot{width:8px;height:8px;border-radius:50%;}
+.form-group{margin-bottom:12px;}
+.form-group label{font-size:11px;color:var(--muted);font-family:var(--mono);display:block;margin-bottom:5px;}
+.form-group input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:7px;font-family:var(--mono);font-size:12px;outline:none;transition:border-color .15s;}
+.form-group input:focus{border-color:var(--accent);}
+/* LOGS */
+.log-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:12px;}
+.log-type{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;flex-shrink:0;}
+.log-INFO{background:rgba(0,153,255,.15);color:var(--accent2);}
+.log-BUY{background:rgba(34,197,94,.15);color:var(--green);}
+.log-SELL{background:rgba(239,68,68,.15);color:var(--red);}
+.log-AUTO{background:rgba(245,158,11,.2);color:var(--yellow);}
+.log-ERROR{background:rgba(239,68,68,.15);color:var(--red);}
+/* AUTO TRADE */
+.auto-panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;}
+.auto-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.auto-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:10px;}
+.auto-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:var(--mono);font-weight:600;}
+.auto-badge.on{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3);}
+.auto-badge.off{background:rgba(100,116,139,.15);color:var(--muted);border:1px solid var(--border);}
+.decision-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin:0 20px 14px;}
+.decision-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.decision-asset{font-size:15px;font-weight:700;}
+.decision-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.decision-reasoning{font-size:12px;color:var(--muted);line-height:1.6;background:var(--surface);border-radius:8px;padding:10px;margin-bottom:12px;border-left:3px solid var(--accent);}
+.decision-actions{display:flex;gap:8px;}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);}
+.setting-row:last-child{border-bottom:none;}
+.toggle{position:relative;display:inline-block;width:44px;height:24px;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--border);transition:.3s;border-radius:24px;}
+.toggle-slider:before{position:absolute;content:'';height:18px;width:18px;left:3px;bottom:3px;background:var(--muted);transition:.3s;border-radius:50%;}
+input:checked+.toggle-slider{background:var(--accent);}
+input:checked+.toggle-slider:before{transform:translateX(20px);background:#000;}
+.warning-box{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:10px;padding:14px;margin-bottom:20px;font-size:13px;line-height:1.6;color:var(--yellow);}
+.warning-box strong{color:var(--yellow);display:block;margin-bottom:4px;}
+/* MISC */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.section-title{font-size:14px;font-weight:700;}.section-sub{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.empty{text-align:center;padding:40px;color:var(--muted);}.empty-icon{font-size:36px;margin-bottom:10px;}.empty-text{font-size:13px;}
+.loading{text-align:center;padding:28px;color:var(--muted);font-family:var(--mono);font-size:13px;}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+#toast{position:fixed;bottom:22px;right:22px;z-index:9999;background:var(--surface2);border:1px solid var(--border);padding:11px 18px;border-radius:10px;font-size:13px;transform:translateY(80px);opacity:0;transition:all .3s;max-width:280px;}
+#toast.show{transform:translateY(0);opacity:1;}#toast.success{border-color:var(--green);color:var(--green);}#toast.error{border-color:var(--red);color:var(--red);}#toast.warn{border-color:var(--yellow);color:var(--yellow);}
+.refresh-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 13px;border-radius:7px;cursor:pointer;font-size:12px;font-family:var(--sans);font-weight:600;display:flex;align-items:center;gap:5px;transition:all .15s;}
+.refresh-btn:hover{border-color:var(--accent);color:var(--accent);}
+@media(max-width:768px){.sidebar{width:56px;}.logo-text,.logo-sub,.nav-item span,.nav-section,.sidebar-footer{display:none;}.main{margin-left:56px;}.platform-grid,.stats-row,.ai-grid,.keys-grid,.ticker-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="logo"><div class="logo-text">ARTHA</div><div class="logo-sub">AI TRADING SYSTEM</div></div>
+  <nav class="nav">
+    <div class="nav-section">Main</div>
+    <div class="nav-item active" onclick="navigate('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="navigate('portfolio')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg><span>Portfolio</span>
+    </div>
+    <div class="nav-item" onclick="navigate('trades')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Trades</span>
+    </div>
+    <div class="nav-section">AI</div>
+    <div class="nav-item" onclick="navigate('autotrade')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <span>Auto Trading</span><span class="badge" id="pendingBadge" style="display:none">0</span>
+    </div>
+    <div class="nav-item" onclick="navigate('ai')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg><span>AI Signals</span>
+    </div>
+    <div class="nav-item" onclick="navigate('chat')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span>AI Chat</span>
+    </div>
+    <div class="nav-section">Settings</div>
+    <div class="nav-item" onclick="navigate('keys')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg><span>API Keys</span>
+    </div>
+    <div class="nav-item" onclick="navigate('logs')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Activity</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="userNameDisplay">—</div>
+      <div style="font-size:10px;color:var(--muted);font-family:var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="userEmailDisplay"></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+      <button onclick="logout()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:6px;font-size:10px;font-family:var(--mono);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+        Logout
+      </button>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">Dashboard</div>
+    <div class="topbar-right">
+      <span id="lastUpdate" style="font-size:11px;color:var(--muted);font-family:var(--mono)"></span>
+      <span id="geminiUsage" style="font-size:11px;color:var(--muted);font-family:var(--mono);padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px" title="Gemini API usage"></span>
+      <button id="syncBtn" onclick="syncPortfolio()" class="btn btn-secondary" style="font-size:12px;padding:7px 14px;display:flex;align-items:center;gap:6px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        Sync Portfolio
+      </button>
+      <button class="refresh-btn" onclick="refreshAll()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>Refresh
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <!-- Token expiry banner — shown automatically when Upstox token expires -->
+      <div id="tokenExpiryBanner" style="display:none;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:13px 18px;margin-bottom:18px;display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:18px">🔄</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--red)">Upstox Token Expired</div>
+            <div style="font-size:11px;color:var(--muted);font-family:var(--mono)" id="tokenExpiryDetail">Re-login to fetch live holdings</div>
+          </div>
+        </div>
+        <button onclick="loginWithUpstox()"
+           style="display:inline-flex;align-items:center;gap:7px;background:var(--upstox);color:#fff;font-weight:800;padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-size:12px;white-space:nowrap;font-family:var(--sans)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          Re-login Upstox
+        </button>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">TOTAL INVESTED</div><div class="stat-value blue" id="totalInvested">—</div></div>
+        <div class="stat-card"><div class="stat-label">CURRENT VALUE</div><div class="stat-value" id="totalCurrent">—</div></div>
+        <div class="stat-card"><div class="stat-label">TOTAL P&L</div><div class="stat-value" id="totalPnl">—</div></div>
+        <div class="stat-card"><div class="stat-label">TOTAL RETURN</div><div class="stat-value" id="totalReturn">—</div></div>
+      </div>
+      <div class="section-header">
+        <div><div class="section-title">Platform Portfolios</div><div class="section-sub">Click any card to expand holdings</div></div>
+      </div>
+      <div class="platform-grid" id="platformGrid"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+      <div class="platform-detail" id="platformDetail">
+        <div class="pd-header">
+          <div class="pd-title"><div class="pd-dot" id="pdDot"></div><span id="pdTitle">Portfolio</span></div>
+          <button class="pd-close" onclick="closePlatformDetail()">✕</button>
+        </div>
+        <div class="table-wrap" id="pdTable"></div>
+      </div>
+
+      <!-- CoinDCX Web3 + Exchange Panel -->
+      <div class="section-header" style="margin-top:6px">
+        <div>
+          <div class="section-title">CoinDCX Portfolio — Web3 &amp; Exchange</div>
+          <div class="section-sub" id="coindcxCacheStatus">Loading cache status...</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="coindcxLastFetch" style="font-size:11px;color:var(--muted);font-family:var(--mono)"></span>
+          <button class="btn btn-secondary" onclick="refreshCoinDCX()" id="coindcxRefreshBtn" style="font-size:11px;padding:7px 13px;display:flex;align-items:center;gap:5px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            Manual Refresh
+          </button>
+        </div>
+      </div>
+      <div id="coindcxPortfolioPanel">
+        <div class="loading"><span class="spinner"></span>Loading CoinDCX portfolio...</div>
+      </div>
+
+      <!-- Upstox Live Portfolio Refresh -->
+      <div class="section-header" style="margin-top:24px">
+        <div>
+          <div class="section-title">Upstox — Live Holdings</div>
+          <div class="section-sub" id="upstoxFetchStatus">Paste your access token in API Keys to fetch live data</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="upstoxLastFetch" style="font-size:11px;color:var(--muted);font-family:var(--mono)"></span>
+          <button class="btn btn-secondary" onclick="refreshUpstox()" id="upstoxRefreshBtn" style="font-size:11px;padding:7px 13px;display:flex;align-items:center;gap:5px;border-color:rgba(124,58,237,.4);color:#a78bfa">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            Manual Refresh
+          </button>
+        </div>
+      </div>
+      <div id="upstoxLivePanel">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;border-top:3px solid var(--upstox);padding:20px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+            <div>
+              <div style="font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:1px;margin-bottom:6px">TOTAL HOLDINGS VALUE</div>
+              <div style="font-size:22px;font-weight:800;font-family:var(--mono)" id="upstoxTotalVal">—</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:1px;margin-bottom:6px">TOTAL P&L</div>
+              <div style="font-size:22px;font-weight:800;font-family:var(--mono)" id="upstoxTotalPnl">—</div>
+            </div>
+          </div>
+          <div class="table-wrap" id="upstoxHoldingsTable">
+            <div class="empty"><div class="empty-icon" style="font-size:28px">🔑</div><div class="empty-text" style="font-size:12px">Click <strong>Manual Refresh</strong> to fetch live Upstox holdings.<br/>Make sure your access token is saved in API Keys.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Groww Live Portfolio Refresh -->
+      <div class="section-header" style="margin-top:24px">
+        <div>
+          <div class="section-title">Groww — Live Holdings</div>
+          <div class="section-sub" id="growwFetchStatus">Paste your API key + secret in API Keys to fetch live data · Token refreshes daily at 6 AM</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="growwLastFetch" style="font-size:11px;color:var(--muted);font-family:var(--mono)"></span>
+          <button class="btn btn-secondary" onclick="refreshGroww()" id="growwRefreshBtn" style="font-size:11px;padding:7px 13px;display:flex;align-items:center;gap:5px;border-color:rgba(5,150,105,.4);color:#34d399">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            Manual Refresh
+          </button>
+        </div>
+      </div>
+      <div id="growwLivePanel">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;border-top:3px solid var(--groww);padding:20px">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px">
+            <div>
+              <div style="font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:1px;margin-bottom:6px">HOLDINGS VALUE</div>
+              <div style="font-size:20px;font-weight:800;font-family:var(--mono)" id="growwHoldingsVal">—</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:1px;margin-bottom:6px">POSITIONS VALUE</div>
+              <div style="font-size:20px;font-weight:800;font-family:var(--mono)" id="growwPositionsVal">—</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:1px;margin-bottom:6px">REALISED P&L</div>
+              <div style="font-size:20px;font-weight:800;font-family:var(--mono)" id="growwRealisedPnl">—</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div>
+              <div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:8px;letter-spacing:1px">HOLDINGS</div>
+              <div id="growwHoldingsTable"><div class="empty" style="padding:20px"><div class="empty-icon" style="font-size:24px">🔑</div><div class="empty-text" style="font-size:12px">Click Manual Refresh</div></div></div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:8px;letter-spacing:1px">POSITIONS</div>
+              <div id="growwPositionsTable"><div class="empty" style="padding:20px"><div class="empty-icon" style="font-size:24px">📊</div><div class="empty-text" style="font-size:12px">No positions data</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header" style="margin-top:24px">
+        <div class="section-title">Live Prices</div><div class="section-sub" id="priceCount"></div>
+      </div>
+      <div class="ticker-grid" id="tickerGrid"><div class="loading"><span class="spinner"></span>Loading prices...</div></div>
+    </div>
+
+    <!-- PORTFOLIO -->
+    <div class="page" id="page-portfolio">
+      <div class="section-header">
+        <div class="section-title">All Holdings</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-secondary" onclick="filterPortfolio('all')" style="font-size:11px;padding:6px 12px">All</button>
+          <button class="btn btn-secondary" onclick="filterPortfolio('Upstox')" style="font-size:11px;padding:6px 12px">Upstox</button>
+          <button class="btn btn-secondary" onclick="filterPortfolio('Groww')" style="font-size:11px;padding:6px 12px">Groww</button>
+          <button class="btn btn-secondary" onclick="filterPortfolio('CoinDCX')" style="font-size:11px;padding:6px 12px">CoinDCX</button>
+        </div>
+      </div>
+      <div class="card" style="padding:0"><div class="table-wrap" id="portfolioTable"><div class="loading"><span class="spinner"></span>Loading...</div></div></div>
+    </div>
+
+    <!-- TRADES -->
+    <div class="page" id="page-trades">
+      <div class="section-header">
+        <div class="section-title">Trade History</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-secondary" onclick="filterTrades('all')" style="font-size:11px;padding:6px 12px">All</button>
+          <button class="btn btn-secondary" onclick="filterTrades('Upstox')" style="font-size:11px;padding:6px 12px">Upstox</button>
+          <button class="btn btn-secondary" onclick="filterTrades('Groww')" style="font-size:11px;padding:6px 12px">Groww</button>
+          <button class="btn btn-secondary" onclick="filterTrades('CoinDCX')" style="font-size:11px;padding:6px 12px">CoinDCX</button>
+        </div>
+      </div>
+      <div class="card" style="padding:0;margin-bottom:18px"><div class="table-wrap" id="tradesTable"><div class="loading"><span class="spinner"></span>Loading...</div></div></div>
+      <div class="card">
+        <div class="card-title">Simulate New Trade</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+          <div><label style="font-size:11px;color:var(--muted);font-family:var(--mono);display:block;margin-bottom:4px">ASSET</label><select class="select-input" id="tradeAsset" style="min-width:150px"></select></div>
+          <div><label style="font-size:11px;color:var(--muted);font-family:var(--mono);display:block;margin-bottom:4px">TYPE</label><select class="select-input" id="tradeType"><option>BUY</option><option>SELL</option></select></div>
+          <div><label style="font-size:11px;color:var(--muted);font-family:var(--mono);display:block;margin-bottom:4px">QTY</label><input type="number" class="text-input" id="tradeQty" placeholder="1" style="width:110px"/></div>
+          <button class="btn btn-primary" onclick="executeTrade()">Execute</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUTO TRADING -->
+    <div class="page" id="page-autotrade">
+      <div class="warning-box">
+        <strong>⚠️ Auto Trading — User Approval Required</strong>
+        The AI will analyse your portfolio and suggest BUY/SELL decisions. <strong>Every decision requires your explicit approval before execution.</strong> You will see the AI's full reasoning, confidence level, and risk assessment before deciding. You can approve or reject each trade individually.
+      </div>
+
+      <!-- Settings -->
+      <div class="auto-panel" style="margin-bottom:20px">
+        <div class="auto-header">
+          <div class="auto-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M20 12h2M2 12h2M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41"/></svg>
+            Auto Trading Settings
+          </div>
+        </div>
+        <div style="padding:0 22px 16px" id="autoSettingsPanel"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+      </div>
+
+      <!-- Run Analysis -->
+      <div class="section-header">
+        <div><div class="section-title">AI Analysis</div><div class="section-sub">Run AI on all enabled platforms</div></div>
+        <button class="btn btn-primary" onclick="runAutoAnalysis()" id="analyzeBtn">🤖 Run AI Analysis</button>
+      </div>
+
+      <!-- Pending Decisions -->
+      <div class="auto-panel">
+        <div class="auto-header">
+          <div class="auto-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Pending Decisions <span id="pendingCount" style="color:var(--muted);font-size:13px;font-weight:400;margin-left:6px"></span>
+          </div>
+          <button class="btn btn-danger" onclick="rejectAll()" style="font-size:11px;padding:6px 12px">Reject All</button>
+        </div>
+        <div id="pendingDecisions" style="padding:0 0 8px"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+      </div>
+
+      <!-- History -->
+      <div class="section-header" style="margin-top:20px">
+        <div class="section-title">Decision History</div>
+      </div>
+      <div class="card" style="padding:0"><div class="table-wrap" id="autoHistoryTable"><div class="loading"><span class="spinner"></span>Loading...</div></div></div>
+    </div>
+
+    <!-- AI SIGNALS -->
+    <div class="page" id="page-ai">
+      <div class="ai-grid">
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title">Get AI Signal</div>
+            <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+              <select class="select-input" id="analyzeAsset" style="min-width:150px"></select>
+              <button class="btn btn-primary" onclick="getSignal()">Analyze</button>
+            </div>
+            <div class="signal-result" id="signalResult"></div>
+          </div>
+        </div>
+        <div>
+          <div class="card"><div class="card-title">Recent Signals</div><div id="signalsHistory"><div class="loading"><span class="spinner"></span></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="page" id="page-chat">
+      <div style="max-width:720px">
+        <div class="card">
+          <div class="card-title">ARTHA AI Assistant</div>
+          <div class="chat-box" id="chatBox">
+            <div class="msg msg-ai"><div class="msg-label">ARTHA AI</div>Namaste! I'm your AI trading assistant. Ask me about your holdings, market conditions, or any trading strategy. How can I help?</div>
+          </div>
+          <div class="chat-input-row">
+            <input type="text" class="text-input" id="chatInput" placeholder="Ask about markets, your holdings, strategies..." onkeydown="if(event.key==='Enter')sendChat()"/>
+            <button class="btn btn-primary" onclick="sendChat()">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KEYS -->
+    <div class="page" id="page-keys">
+      <div style="font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px">Step 1 — Enter & Save Your API Keys</div>
+      <div class="keys-grid" id="keysGrid">
+        <div class="key-card" style="border-top:3px solid var(--upstox)">
+          <div class="key-header"><div class="key-dot" style="background:var(--upstox)"></div><span>Upstox</span></div>
+          <div class="form-group"><label>API KEY (Client ID)</label><input type="text" id="key_Upstox" placeholder="Your Upstox Client ID"/></div>
+          <div class="form-group"><label>API SECRET (Client Secret)</label><input type="password" id="secret_Upstox" placeholder="Your Upstox Client Secret"/></div>
+          <button class="btn btn-primary" style="width:100%;font-size:12px" onclick="saveKey('Upstox')">Save Keys</button>
+        </div>
+        <div class="key-card" style="border-top:3px solid var(--coindcx)">
+          <div class="key-header"><div class="key-dot" style="background:var(--coindcx)"></div><span>CoinDCX</span></div>
+          <div class="form-group"><label>API KEY</label><input type="text" id="key_CoinDCX" placeholder="Your CoinDCX API key"/></div>
+          <div class="form-group"><label>API SECRET</label><input type="password" id="secret_CoinDCX" placeholder="Your CoinDCX secret key"/></div>
+          <button class="btn btn-primary" style="width:100%;font-size:12px" onclick="saveKey('CoinDCX')">Save Keys</button>
+        </div>
+        <div class="key-card" style="border-top:3px solid var(--groww)">
+          <div class="key-header"><div class="key-dot" style="background:var(--groww)"></div><span>Groww</span></div>
+          <div class="form-group"><label>API KEY</label><input type="text" id="key_Groww" placeholder="Your Groww API key"/></div>
+          <div class="form-group"><label>API SECRET</label><input type="password" id="secret_Groww" placeholder="Your Groww secret key"/></div>
+          <button class="btn btn-primary" style="width:100%;font-size:12px" onclick="saveKey('Groww')">Save Keys</button>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;margin:22px 0 14px">Step 2 — Authenticate Each Platform</div>
+      <div class="card" style="margin-top:18px;border-top:3px solid var(--upstox)">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+          <div>
+            <div style="font-size:15px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px">
+              <div style="width:8px;height:8px;border-radius:50%;background:var(--upstox)"></div>
+              Upstox — One-Click Login
+            </div>
+            <div style="font-size:13px;color:var(--muted);line-height:1.7;max-width:520px">
+              After saving your <strong style="color:var(--text)">API Key</strong> and <strong style="color:var(--text)">API Secret</strong> above, click the button to complete OAuth login automatically.<br/>
+              Your access token will be saved — no manual copy-pasting needed.
+            </div>
+            <div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:8px">
+              Redirect URI to set in Upstox Developer Portal → <span style="color:var(--accent)">http://127.0.0.1:8000/upstox/callback</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+            <button onclick="loginWithUpstox()"
+               style="display:inline-flex;align-items:center;gap:8px;background:var(--upstox);color:#fff;font-weight:800;padding:12px 24px;border-radius:10px;border:none;cursor:pointer;font-size:14px;font-family:var(--sans);transition:opacity .15s"
+               onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+              Login with Upstox
+            </button>
+            <div id="upstoxTokenStatus" style="font-size:11px;font-family:var(--mono);color:var(--muted);text-align:right"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Groww Token Generation Card -->
+      <div class="card" style="margin-top:14px;border-top:3px solid var(--groww)">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+          <div>
+            <div style="font-size:15px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px">
+              <div style="width:8px;height:8px;border-radius:50%;background:var(--groww)"></div>
+              Groww — Generate Token
+            </div>
+            <div style="font-size:13px;color:var(--muted);line-height:1.7;max-width:520px">
+              After saving your API Key + Secret above, first <strong style="color:var(--text)">approve the session on your phone</strong>:<br/>
+              Groww app → Profile → Trading APIs → Approve pending session → then click Generate Token.
+            </div>
+            <div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:8px">Token expires daily at 6 AM IST — regenerate each morning</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+            <button onclick="generateGrowwToken()"
+               style="display:inline-flex;align-items:center;gap:8px;background:var(--groww);color:#fff;font-weight:800;padding:12px 24px;border-radius:10px;border:none;cursor:pointer;font-size:14px;font-family:var(--sans)"
+               id="growwTokenBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+              Generate Token
+            </button>
+            <div id="growwTokenStatus" style="font-size:11px;font-family:var(--mono);color:var(--muted);text-align:right;max-width:220px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CoinDCX Test Connection Card -->
+      <div class="card" style="margin-top:14px;border-top:3px solid var(--coindcx)">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+          <div>
+            <div style="font-size:15px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px">
+              <div style="width:8px;height:8px;border-radius:50%;background:var(--coindcx)"></div>
+              CoinDCX — Test Connection
+            </div>
+            <div style="font-size:13px;color:var(--muted);line-height:1.7;max-width:520px">
+              CoinDCX uses HMAC authentication — <strong style="color:var(--text)">no daily login needed</strong>.<br/>
+              Just save your API Key + Secret above and test the connection once.
+            </div>
+            <div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:8px">Generate keys: CoinDCX app → Settings → API Management</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+            <button onclick="testCoinDCX()"
+               style="display:inline-flex;align-items:center;gap:8px;background:var(--coindcx);color:#fff;font-weight:800;padding:12px 24px;border-radius:10px;border:none;cursor:pointer;font-size:14px;font-family:var(--sans)"
+               id="coindcxTestBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Test Connection
+            </button>
+            <div id="coindcxConnStatus" style="font-size:11px;font-family:var(--mono);color:var(--muted);text-align:right"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="card-title">Setup Guide</div>
+        <div style="font-size:13px;line-height:2;color:var(--muted)">
+          <p>• <strong style="color:var(--text)">Upstox</strong> — Save API Key + Secret → click <strong style="color:#a78bfa">Login with Upstox</strong> → approve login → token auto-saved ✓ · Renew daily</p>
+          <p>• <strong style="color:var(--text)">Groww</strong> — Save API Key + Secret → approve in Groww app → click <strong style="color:#34d399">Generate Token</strong> → token saved ✓ · Renew daily at 6 AM</p>
+          <p>• <strong style="color:var(--text)">CoinDCX</strong> — Save API Key + Secret → click <strong style="color:#fbbf24">Test Connection</strong> → connected ✓ · No daily renewal needed</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOGS -->
+    <div class="page" id="page-logs">
+      <div class="section-header">
+        <div class="section-title">Activity Log</div>
+        <button class="btn btn-danger" onclick="clearLogs()" style="font-size:12px;padding:7px 13px">Clear Logs</button>
+      </div>
+      <div class="card" id="logsContainer"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+    </div>
+
+  </div>
+</main>
+<div id="toast"></div>
+
+<script>
+// ── AUTH ───────────────────────────────────────────────────────────────────────
+const TOKEN_KEY = 'artha_token';
+const USER_KEY  = 'artha_user';
+
+function getToken(){ return localStorage.getItem(TOKEN_KEY); }
+function getUser(){
+  try{ return JSON.parse(localStorage.getItem(USER_KEY)||'{}'); }
+  catch{ return {}; }
+}
+
+function logout(){
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+  window.location.href='/login';
+}
+
+// Redirect to login if no token
+(function checkAuth(){
+  if(!getToken()) window.location.href='/login';
+})();
+
+// Show user name in sidebar
+(function showUser(){
+  const u=getUser();
+  const el=document.getElementById('userNameDisplay');
+  if(el && u.name) el.textContent=u.name;
+  const em=document.getElementById('userEmailDisplay');
+  if(em && u.email) em.textContent=u.email;
+})();
+
+// authFetch — wraps every API call with JWT Authorization header
+async function authFetch(url, options={}){
+  const token=getToken();
+  if(!token){ window.location.href='/login'; return; }
+  const headers={...( options.headers||{}),'Authorization':'Bearer '+token};
+  const res=await fetch(url,{...options,headers});
+  if(res.status===401){
+    // Token expired or invalid — redirect to login
+    logout();
+    return;
+  }
+  return res;
+}
+
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let portfolioData=null, allTrades=[], allPositions=[], chatHistory=[], selectedPlatform=null;
+
+const titles={dashboard:'Dashboard',portfolio:'Portfolio',trades:'Trades',autotrade:'Auto Trading',ai:'AI Signals',chat:'AI Chat',keys:'API Keys',logs:'Activity Log'};
+
+// ── NAV ────────────────────────────────────────────────────────────────────────
+function navigate(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{if(n.getAttribute('onclick')===`navigate('${page}')`)n.classList.add('active');});
+  document.getElementById('pageTitle').textContent=titles[page]||page;
+  if(page==='ai'){populateSelects();loadSignalsHistory();}
+  if(page==='keys')loadKeys();
+  if(page==='logs')loadLogs();
+}
+
+function refreshAll(){
+  const active=document.querySelector('.page.active');
+  if(!active) return;
+  const id=active.id.replace('page-','');
+  if(id==='dashboard') loadDashboard();
+  else if(id==='portfolio') loadPortfolioPage();
+  else if(id==='trades') loadTradesPage();
+  else if(id==='autotrade'){loadAutoSettings();loadPendingDecisions();loadAutoHistory();}
+  else if(id==='ai'){populateSelects();loadSignalsHistory();}
+  else if(id==='keys') loadKeys();
+  else if(id==='logs') loadLogs();
+  document.getElementById('lastUpdate').textContent='Updated '+new Date().toLocaleTimeString();
+}
+
+// ── TOAST ──────────────────────────────────────────────────────────────────────
+function toast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className='show '+type;setTimeout(()=>t.className='',3500);}
+
+// ── FORMAT ─────────────────────────────────────────────────────────────────────
+function fmt(n){return'₹'+Number(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function pnlCls(v){return v>=0?'pnl-pos':'pnl-neg';}
+function tdCls(v){return v>=0?'td-pos':'td-neg';}
+
+// ── DASHBOARD ──────────────────────────────────────────────────────────────────
+async function loadDashboard(){await Promise.all([loadPlatformCards(),loadPrices(),loadCoinDCXPortfolio()]);}
+
+// ── COINDCX PORTFOLIO ──────────────────────────────────────────────────────────
+async function loadCoinDCXPortfolio(force=false){
+  const panel = document.getElementById('coindcxPortfolioPanel');
+  if(force) panel.innerHTML='<div class="loading"><span class="spinner"></span>Fetching from CoinDCX...</div>';
+  try{
+    const url = force ? '/api/coindcx/portfolio?force=true' : '/api/coindcx/portfolio';
+    const data = await fetch(url).then(r=>r.json());
+    renderCoinDCXPortfolio(data);
+    loadCoinDCXCacheStatus();
+  }catch(e){
+    panel.innerHTML=`<div class="card"><div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">${e.message}</div></div></div>`;
+  }
+}
+
+async function refreshCoinDCX(){
+  const btn=document.getElementById('coindcxRefreshBtn');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Refreshing...';
+  try{
+    const data=await authFetch('/api/coindcx/portfolio/refresh',{method:'POST'}).then(r=>r.json());
+    renderCoinDCXPortfolio(data);
+    loadCoinDCXCacheStatus();
+    toast('CoinDCX portfolio refreshed ✓');
+  }catch(e){toast('Refresh failed: '+e.message,'error');}
+  btn.disabled=false;
+  btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> Manual Refresh';
+}
+
+async function loadCoinDCXCacheStatus(){
+  try{
+    const s=await authFetch('/api/coindcx/cache-status').then(r=>r.json());
+    const statusEl=document.getElementById('coindcxCacheStatus');
+    const fetchEl =document.getElementById('coindcxLastFetch');
+    if(s.cached){
+      statusEl.textContent=`Auto-refreshes every 6h · Next refresh in ${s.next_refresh_in_hours}h`;
+      fetchEl.textContent =`Last fetched ${s.age_minutes}min ago`;
+    } else {
+      statusEl.textContent='Not yet fetched · Auto-refreshes every 6h';
+      fetchEl.textContent='';
+    }
+  }catch(e){}
+}
+
+function renderCoinDCXPortfolio(data){
+  const panel   = document.getElementById('coindcxPortfolioPanel');
+  const exchange = data.exchange || [];
+  const web3     = data.web3     || [];
+  const seeded   = data.status === 'SEEDED';
+  const fromCache= data.from_cache;
+
+  // ── Summary row ──────────────────────────────────────────────────────────────
+  const w3pnlColor = (data.web3_pnl||0) >= 0 ? 'var(--green)' : 'var(--red)';
+  let html = `
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px">
+    <div class="card" style="border-top:3px solid #a78bfa;padding:16px">
+      <div class="stat-label">WEB3 WALLET</div>
+      <div class="stat-value" style="font-size:20px">${fmt(data.web3_total||0)}</div>
+      <div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:4px">${web3.length} tokens</div>
+      <div style="font-size:13px;font-weight:700;font-family:var(--mono);margin-top:6px;color:${w3pnlColor}">
+        P&L: ${(data.web3_pnl||0)>=0?'+':''}${fmt(data.web3_pnl||0)}
+      </div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--accent2);padding:16px">
+      <div class="stat-label">EXCHANGE WALLET</div>
+      <div class="stat-value" style="font-size:20px">${fmt(data.exchange_total||0)}</div>
+      <div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:4px">${exchange.length} tokens · Live prices</div>
+      <div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:6px">Cost basis not available via API</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--accent);padding:16px">
+      <div class="stat-label">TOTAL CoinDCX</div>
+      <div class="stat-value" style="font-size:20px">${fmt(data.total_current||0)}</div>
+      <div style="font-size:11px;margin-top:4px;font-family:var(--mono)">
+        ${seeded ? '<span style="color:var(--yellow)">⚠ Using seeded data — add API keys for live exchange</span>'
+                 : fromCache ? '<span style="color:var(--muted)">From cache</span>'
+                             : '<span style="color:var(--green)">✓ Live data</span>'}
+      </div>
+      <div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:4px">${data.fetched_at ? 'At '+new Date(data.fetched_at).toLocaleTimeString('en-IN') : ''}</div>
+    </div>
+  </div>`;
+
+  // ── Web3 table ───────────────────────────────────────────────────────────────
+  html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">`;
+
+  // Web3 section
+  html += `<div>
+    <div style="font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px">
+      Web3 Wallet <span style="color:var(--muted);font-weight:400">· prices updated live</span>
+    </div>
+    <div class="card" style="padding:0"><div class="table-wrap">
+    <table><thead><tr><th>Token</th><th>Qty</th><th>Price</th><th>Value</th><th>P&L</th></tr></thead><tbody>`;
+
+  for(const t of web3){
+    const pnl=t.pnl||0; const pc=pnl>=0?'td-pos':'td-neg';
+    html+=`<tr>
+      <td><span class="td-asset">${t.asset}</span></td>
+      <td style="font-family:var(--mono);font-size:11px">${Number(t.quantity).toFixed(5)}</td>
+      <td style="font-family:var(--mono);font-size:11px">${t.inr_price>0?fmt(t.inr_price):'—'}</td>
+      <td style="font-family:var(--mono)">${fmt(t.current_value||0)}</td>
+      <td class="${pc}" style="font-family:var(--mono)">${t.invested>0?(pnl>=0?'+':'')+fmt(pnl):'—'}</td>
+    </tr>`;
+  }
+  html += `</tbody></table></div></div></div>`;
+
+  // Exchange section
+  html += `<div>
+    <div style="font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px">
+      Exchange Wallet <span style="color:var(--muted);font-weight:400">· live balances + prices</span>
+    </div>
+    <div class="card" style="padding:0"><div class="table-wrap">`;
+
+  if(!exchange.length || exchange[0]?.asset==='ERROR'){
+    html+=`<div class="empty" style="padding:24px"><div class="empty-icon" style="font-size:24px">🔑</div><div class="empty-text" style="font-size:12px">Add CoinDCX API keys to see exchange balances</div></div>`;
+  } else {
+    html+=`<table><thead><tr><th>Token</th><th>Qty</th><th>Price</th><th>Value</th></tr></thead><tbody>`;
+    for(const t of exchange){
+      html+=`<tr>
+        <td><span class="td-asset">${t.asset}</span></td>
+        <td style="font-family:var(--mono);font-size:11px">${Number(t.quantity).toFixed(6)}</td>
+        <td style="font-family:var(--mono);font-size:11px">${t.inr_price>0?fmt(t.inr_price):'—'}</td>
+        <td style="font-family:var(--mono)">${fmt(t.current_value||0)}</td>
+      </tr>`;
+    }
+    html+=`</tbody></table>`;
+  }
+  html+=`</div></div></div></div>`;
+  panel.innerHTML=html;
+}
+
+// ── UPSTOX LIVE REFRESH ────────────────────────────────────────────────────────
+async function refreshUpstox(){
+  const btn=document.getElementById('upstoxRefreshBtn');
+  const statusEl=document.getElementById('upstoxFetchStatus');
+  const lastFetchEl=document.getElementById('upstoxLastFetch');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span> Fetching...';
+  statusEl.textContent='Fetching from Upstox API...';
+  try{
+    const data=await authFetch('/api/upstox/portfolio').then(r=>r.json());
+
+    // Token expired or not configured — show re-login prompt
+    if(data.action==='login' || data.status==='TOKEN_EXPIRED' || data.status==='NOT_CONFIGURED'){
+      const isExpired = data.status==='TOKEN_EXPIRED';
+      const ageNote   = data.token_age_hours ? ` (token is ${data.token_age_hours}h old, expires at ~23h)` : '';
+      statusEl.innerHTML=`<span style="color:var(--red)">⚠ ${isExpired?'Token expired':'Not configured'}${ageNote}</span>`;
+      document.getElementById('upstoxHoldingsTable').innerHTML=`
+        <div style="text-align:center;padding:28px">
+          <div style="font-size:28px;margin-bottom:10px">${isExpired?'🔄':'🔑'}</div>
+          <div style="font-size:13px;color:var(--text);margin-bottom:16px;line-height:1.6">
+            ${isExpired
+              ? `Your Upstox token expired.<br/>Click below to re-login — takes about 10 seconds.`
+              : `No access token found.<br/>Save your API Key + Secret in API Keys, then login.`}
+          </div>
+          <button onclick="loginWithUpstox();setTimeout(()=>refreshUpstox(),6000)"
+             style="display:inline-flex;align-items:center;gap:8px;background:var(--upstox);color:#fff;font-weight:800;padding:11px 22px;border-radius:9px;border:none;cursor:pointer;font-size:13px;font-family:var(--sans)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            ${isExpired?'Re-login Upstox':'Login with Upstox'}
+          </button>
+          <div style="font-size:11px;color:var(--muted);margin-top:12px;font-family:var(--mono)">After login, this panel will auto-refresh</div>
+        </div>`;
+      document.getElementById('upstoxTotalVal').textContent='—';
+      document.getElementById('upstoxTotalPnl').textContent='—';
+      toast(isExpired?'Upstox token expired — please re-login':'Upstox not configured','warn');
+    } else if(data.status==='ERROR'){
+      // Other API error
+      statusEl.innerHTML=`<span style="color:var(--red)">⚠ ${data.error}</span>`;
+      document.getElementById('upstoxHoldingsTable').innerHTML=`
+        <div class="empty"><div class="empty-icon" style="font-size:24px">⚠️</div>
+        <div class="empty-text" style="font-size:12px;color:var(--red)">${data.error}</div></div>`;
+      toast('Upstox error: '+data.error,'error');
+    } else {
+      // SUCCESS
+      renderUpstoxHoldings(data);
+      const now=new Date().toLocaleTimeString('en-IN');
+      lastFetchEl.textContent='Fetched at '+now;
+      statusEl.innerHTML=`<span style="color:var(--green)">✓ Live data</span> · ${(data.holdings||[]).length} holdings · ${(data.positions||[]).length} positions`;
+      toast('Upstox holdings refreshed ✓');
+    }
+  }catch(e){
+    statusEl.innerHTML=`<span style="color:var(--red)">⚠ ${e.message}</span>`;
+    toast('Upstox error: '+e.message,'error');
+  }
+  btn.disabled=false;
+  btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> Manual Refresh';
+}
+
+function renderUpstoxHoldings(data){
+  const holdings=data.holdings||[];
+  let totalVal=0, totalPnl=0;
+  for(const h of holdings){ totalVal+=h.last_price*h.quantity; totalPnl+=h.pnl||0; }
+  document.getElementById('upstoxTotalVal').textContent=fmt(totalVal);
+  document.getElementById('upstoxTotalVal').style.color='var(--text)';
+  document.getElementById('upstoxTotalPnl').textContent=(totalPnl>=0?'+':'')+fmt(totalPnl);
+  document.getElementById('upstoxTotalPnl').style.color=totalPnl>=0?'var(--green)':'var(--red)';
+  if(!holdings.length){
+    document.getElementById('upstoxHoldingsTable').innerHTML='<div class="empty"><div class="empty-icon" style="font-size:24px">📭</div><div class="empty-text">No holdings found</div></div>';
+    return;
+  }
+  let html=`<table><thead><tr>
+    <th>Symbol</th><th>Qty</th><th>Avg Price</th><th>Last Price</th><th>Current Value</th><th>P&L</th><th>Day Change</th>
+  </tr></thead><tbody>`;
+  for(const h of holdings){
+    const pnl=h.pnl||0; const pc=pnl>=0?'td-pos':'td-neg';
+    const dc=h.day_change_percentage||0; const dcc=dc>=0?'td-pos':'td-neg';
+    const curVal=(h.last_price||0)*(h.quantity||0);
+    html+=`<tr>
+      <td><span class="td-asset">${h.trading_symbol||h.tradingsymbol||''}</span></td>
+      <td>${h.quantity}</td>
+      <td>${fmt(h.average_price||0)}</td>
+      <td>${fmt(h.last_price||0)}</td>
+      <td>${fmt(curVal)}</td>
+      <td class="${pc}">${pnl>=0?'+':''}${fmt(pnl)}</td>
+      <td class="${dcc}">${dc>=0?'+':''}${dc.toFixed(2)}%</td>
+    </tr>`;
+  }
+  html+='</tbody></table>';
+  document.getElementById('upstoxHoldingsTable').innerHTML=html;
+}
+
+// ── GROWW LIVE REFRESH ─────────────────────────────────────────────────────────
+async function refreshGroww(){
+  const btn=document.getElementById('growwRefreshBtn');
+  const statusEl=document.getElementById('growwFetchStatus');
+  const lastFetchEl=document.getElementById('growwLastFetch');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span> Fetching...';
+  statusEl.textContent='Fetching from Groww API...';
+  try{
+    const data=await authFetch('/api/groww/portfolio').then(r=>r.json());
+    if(data.status==='ERROR'||data.error){
+      statusEl.textContent='⚠ '+(data.error||'Failed — check API key/secret and ensure you approved the session today');
+      document.getElementById('growwHoldingsTable').innerHTML=`<div class="empty"><div class="empty-icon" style="font-size:24px">⚠️</div><div class="empty-text" style="font-size:12px;color:var(--red)">${data.error||'Check API keys and daily approval'}</div></div>`;
+      toast('Groww fetch failed: '+(data.error||'Check keys'),'error');
+    } else {
+      renderGrowwData(data);
+      const now=new Date().toLocaleTimeString('en-IN');
+      lastFetchEl.textContent='Fetched at '+now;
+      statusEl.textContent='✓ Live data · '+((data.holdings||[]).length)+' holdings · '+((data.positions||[]).length)+' positions · Token valid until 6 AM';
+      toast('Groww data refreshed ✓');
+    }
+  }catch(e){
+    statusEl.textContent='⚠ '+e.message;
+    toast('Groww error: '+e.message,'error');
+  }
+  btn.disabled=false;
+  btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> Manual Refresh';
+}
+
+function renderGrowwData(data){
+  const stocks   = data.stocks   || data.holdings || [];
+  const etfs     = data.etfs     || [];
+  const mf       = data.mf       || [];
+  const positions= data.positions|| [];
+
+  // Summary
+  const stocksVal = stocks.reduce((s,h)=>s+(h.ltp||h.avg_buy_price||0)*(h.quantity||0),0);
+  const etfsVal   = etfs.reduce((s,h)=>s+(h.ltp||h.avg_buy_price||0)*(h.quantity||0),0);
+  const mfVal     = mf.reduce((s,h)=>s+(h.current_value||0),0);
+  const mfPnl     = mf.reduce((s,h)=>s+(h.pnl||0),0);
+  const posVal    = positions.reduce((s,p)=>s+(p.net_price||0)*(p.quantity||0),0);
+  const realisedPnl=positions.reduce((s,p)=>s+(p.realised_pnl||0),0);
+
+  const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+  set('growwHoldingsVal', (stocksVal+etfsVal)>0?fmt(stocksVal+etfsVal):'—');
+  set('growwPositionsVal', posVal>0?fmt(posVal):'—');
+  set('growwRealisedPnl', realisedPnl!==0?(realisedPnl>=0?'+':'')+fmt(realisedPnl):'—');
+  const rEl=document.getElementById('growwRealisedPnl');
+  if(rEl) rEl.style.color=realisedPnl>=0?'var(--green)':'var(--red)';
+
+  function makeTable(items, cols, rowFn, emptyMsg){
+    if(!items.length) return `<div class="empty" style="padding:14px"><div class="empty-text" style="font-size:12px">${emptyMsg}</div></div>`;
+    let h=`<table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+    items.forEach(i=>h+=rowFn(i));
+    return h+'</tbody></table>';
+  }
+
+  // ── Stocks ────────────────────────────────────────────────────────────────────
+  const stockHtml = makeTable(stocks,
+    ['Symbol','Qty','Avg Price','LTP','P&L'],
+    h=>{
+      const pnl=h.pnl||0; const pc=pnl>=0?'td-pos':'td-neg';
+      return `<tr>
+        <td><span class="td-asset" style="font-size:12px">${h.asset}</span></td>
+        <td>${h.quantity}</td>
+        <td>${fmt(h.avg_buy_price||0)}</td>
+        <td style="font-family:var(--mono)">${h.ltp>0?fmt(h.ltp):'—'}</td>
+        <td class="${pc}">${pnl!==0?(pnl>=0?'+':'')+fmt(pnl):'—'}</td>
+      </tr>`;
+    },
+    'No stocks found'
+  );
+
+  // ── ETFs ──────────────────────────────────────────────────────────────────────
+  const etfHtml = makeTable(etfs,
+    ['ETF','Qty','Avg Price','LTP','P&L'],
+    h=>{
+      const pnl=h.pnl||0; const pc=pnl>=0?'td-pos':'td-neg';
+      return `<tr>
+        <td><span class="td-asset" style="font-size:12px">${h.asset}</span></td>
+        <td>${h.quantity}</td>
+        <td>${fmt(h.avg_buy_price||0)}</td>
+        <td style="font-family:var(--mono)">${h.ltp>0?fmt(h.ltp):'—'}</td>
+        <td class="${pc}">${pnl!==0?(pnl>=0?'+':'')+fmt(pnl):'—'}</td>
+      </tr>`;
+    },
+    'No ETFs found'
+  );
+
+  // ── Mutual Funds ──────────────────────────────────────────────────────────────
+  const mfHtml = makeTable(mf,
+    ['Scheme','Units','Avg NAV','Current Value','P&L'],
+    h=>{
+      const pnl=h.pnl||0; const pc=pnl>=0?'td-pos':'td-neg';
+      return `<tr>
+        <td><span style="font-size:11px;color:var(--text)">${h.asset}</span></td>
+        <td style="font-family:var(--mono);font-size:11px">${Number(h.units||0).toFixed(3)}</td>
+        <td>${fmt(h.avg_nav||0)}</td>
+        <td style="font-family:var(--mono)">${fmt(h.current_value||0)}</td>
+        <td class="${pc}">${pnl!==0?(pnl>=0?'+':'')+fmt(pnl):'—'}</td>
+      </tr>`;
+    },
+    'No mutual funds found'
+  );
+
+  // ── Positions ─────────────────────────────────────────────────────────────────
+  const posHtml = makeTable(positions,
+    ['Symbol','Qty','Net Price','Realised P&L'],
+    p=>{
+      const pc=(p.realised_pnl||0)>=0?'td-pos':'td-neg';
+      return `<tr>
+        <td><span class="td-asset" style="font-size:12px">${p.asset}</span></td>
+        <td>${p.quantity}</td>
+        <td>${fmt(p.net_price||0)}</td>
+        <td class="${pc}">${(p.realised_pnl||0)>=0?'+':''}${fmt(p.realised_pnl||0)}</td>
+      </tr>`;
+    },
+    'No open positions'
+  );
+
+  // MF section — Groww Trading API does NOT expose MF holdings
+  const mfNote = data.mf_note || 'Groww Trading API does not expose Mutual Fund holdings. Check the Groww app directly.';
+  const mfSection = mf.length > 0
+    ? `<div class="card" style="padding:0;margin-bottom:16px"><div class="table-wrap">${mfHtml}</div></div>`
+    : `<div class="card" style="padding:14px 18px;border-left:3px solid var(--yellow);margin-bottom:16px">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="font-size:16px">ℹ️</span>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--yellow);margin-bottom:3px">Not available via Trading API</div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.6">${mfNote}</div>
+          </div>
+        </div>
+      </div>`;
+
+  const el=document.getElementById('growwHoldingsTable');
+  if(el) el.innerHTML=`
+    <div style="font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">Stocks (${stocks.length})</div>
+    <div class="card" style="padding:0;margin-bottom:16px"><div class="table-wrap">${stockHtml}</div></div>
+    <div style="font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">ETFs (${etfs.length})</div>
+    <div class="card" style="padding:0;margin-bottom:16px"><div class="table-wrap">${etfHtml}</div></div>
+    <div style="font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">Mutual Funds</div>
+    ${mfSection}
+    <div style="font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">Intraday Positions (${positions.length})</div>
+    <div class="card" style="padding:0"><div class="table-wrap">${posHtml}</div></div>`;
+}
+
+async function loadPlatformCards(){
+  try{
+    const res=await authFetch('/api/portfolio');portfolioData=await res.json();allPositions=portfolioData.positions||[];
+    document.getElementById('totalInvested').textContent=fmt(portfolioData.total_invested);
+    document.getElementById('totalCurrent').textContent=fmt(portfolioData.total_current);
+    const pnl=portfolioData.total_pnl,ret=portfolioData.total_pnl_pct;
+    document.getElementById('totalPnl').textContent=(pnl>=0?'+':'')+fmt(pnl);
+    document.getElementById('totalPnl').className='stat-value '+(pnl>=0?'green':'red');
+    document.getElementById('totalReturn').textContent=(ret>=0?'+':'')+ret.toFixed(2)+'%';
+    document.getElementById('totalReturn').className='stat-value '+(ret>=0?'green':'red');
+
+    // Load auto settings for badges
+    const settingsRes=await authFetch('/api/auto-trade/settings');
+    const settings=await settingsRes.json();
+    const enabledMap={};settings.forEach(s=>enabledMap[s.platform]=s.enabled);
+
+    const types={Upstox:'STOCKS',Groww:'STOCKS',CoinDCX:'CRYPTO'};
+    const summary=portfolioData.platform_summary;
+    let html='';
+    for(const[plat,data] of Object.entries(summary)){
+      const pc=pnlCls(data.pnl);
+      const autoOn=enabledMap[plat];
+      html+=`<div class="platform-card ${plat.toLowerCase()}" onclick="openPlatformDetail('${plat}')">
+        <div class="pc-header">
+          <div class="pc-name">${plat}${autoOn?'<span class="auto-on" title="Auto Trading ON"></span>':''}</div>
+          <div class="pc-badge">${types[plat]||'MIXED'}</div>
+        </div>
+        <div class="pc-amount">${fmt(data.current)}</div>
+        <div class="pc-sub">Invested: ${fmt(data.invested)}</div>
+        <div class="pc-pnl ${pc}">
+          <span class="pnl-val">${data.pnl>=0?'+':''}${fmt(data.pnl)}</span>
+          <span class="pnl-pct">${data.pnl_pct>=0?'+':''}${data.pnl_pct.toFixed(2)}%</span>
+        </div>
+        <div class="pc-click-hint">↗ Click to view ${data.positions.length} positions</div>
+      </div>`;
+    }
+    document.getElementById('platformGrid').innerHTML=html;
+  }catch(e){document.getElementById('platformGrid').innerHTML=`<div class="card"><div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">${e.message}</div></div></div>`;}
+}
+
+function openPlatformDetail(platform){
+  if(selectedPlatform===platform){closePlatformDetail();return;}
+  selectedPlatform=platform;
+  document.querySelectorAll('.platform-card').forEach(c=>{c.classList.remove('selected');if(c.classList.contains(platform.toLowerCase()))c.classList.add('selected');});
+  const colors={Upstox:'#7c3aed',Groww:'#059669',CoinDCX:'#d97706'};
+  document.getElementById('pdDot').style.background=colors[platform];
+  document.getElementById('pdTitle').textContent=platform+' Holdings';
+  const positions=(portfolioData?.platform_summary?.[platform]?.positions)||[];
+  const detail=document.getElementById('platformDetail');detail.classList.add('visible');
+  if(!positions.length){document.getElementById('pdTable').innerHTML=`<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">No positions for ${platform}</div></div>`;return;}
+  let html=`<table><thead><tr><th>Asset</th><th>Qty</th><th>Avg Buy</th><th>Current</th><th>Invested</th><th>Value</th><th>P&L</th><th>Return</th></tr></thead><tbody>`;
+  for(const p of positions){
+    const pc=tdCls(p.pnl);
+    html+=`<tr><td><span class="td-asset">${p.asset}</span></td><td>${p.quantity}</td><td>${fmt(p.avg_buy_price)}</td><td>${fmt(p.current_price)}</td><td>${fmt(p.invested_value)}</td><td>${fmt(p.current_value)}</td><td class="${pc}">${p.pnl>=0?'+':''}${fmt(p.pnl)}</td><td class="${pc}">${p.pnl_pct>=0?'+':''}${p.pnl_pct.toFixed(2)}%</td></tr>`;
+  }
+  html+='</tbody></table>';
+  document.getElementById('pdTable').innerHTML=html;
+  detail.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function closePlatformDetail(){selectedPlatform=null;document.getElementById('platformDetail').classList.remove('visible');document.querySelectorAll('.platform-card').forEach(c=>c.classList.remove('selected'));}
+
+async function loadPrices(){
+  try{
+    const prices=await authFetch('/api/prices').then(r=>r.json());
+    document.getElementById('priceCount').textContent=prices.length+' assets';
+    if(!prices.length){document.getElementById('tickerGrid').innerHTML='<div class="empty"><div class="empty-icon">⏳</div><div class="empty-text">Prices loading in ~5s...</div></div>';return;}
+    let html='';
+    for(const p of prices){
+      const up=p.change_pct>=0;
+      html+=`<div class="ticker-card" onclick="document.getElementById('analyzeAsset').value='${p.asset}';navigate('ai')">
+        <div class="tk-asset">${p.asset}</div>
+        <div class="tk-price">${fmt(p.price)}</div>
+        <div class="tk-change" style="color:${up?'var(--green)':'var(--red)'}">${up?'▲':'▼'} ${Math.abs(p.change_pct).toFixed(3)}%</div>
+      </div>`;
+    }
+    document.getElementById('tickerGrid').innerHTML=html;
+  }catch(e){}
+}
+
+// ── PORTFOLIO PAGE ─────────────────────────────────────────────────────────────
+async function loadPortfolioPage(){
+  try{
+    const res=await authFetch('/api/portfolio');portfolioData=await res.json();allPositions=portfolioData.positions||[];
+    renderPortfolioTable(allPositions);
+  }catch(e){document.getElementById('portfolioTable').innerHTML='<div class="loading">Error</div>';}
+}
+function filterPortfolio(plat){renderPortfolioTable(plat==='all'?allPositions:allPositions.filter(p=>p.platform===plat));}
+function renderPortfolioTable(positions){
+  if(!positions.length){document.getElementById('portfolioTable').innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">No positions</div></div>';return;}
+  let html=`<table><thead><tr><th>Asset</th><th>Platform</th><th>Qty</th><th>Avg Buy</th><th>Current</th><th>Invested</th><th>Value</th><th>P&L</th><th>Return</th></tr></thead><tbody>`;
+  for(const p of positions){
+    const pc=tdCls(p.pnl);
+    html+=`<tr><td><span class="td-asset">${p.asset}</span></td><td><span class="td-platform ${p.platform}">${p.platform}</span></td><td>${p.quantity}</td><td>${fmt(p.avg_buy_price)}</td><td>${fmt(p.current_price)}</td><td>${fmt(p.invested_value)}</td><td>${fmt(p.current_value)}</td><td class="${pc}">${p.pnl>=0?'+':''}${fmt(p.pnl)}</td><td class="${pc}">${p.pnl_pct>=0?'+':''}${p.pnl_pct.toFixed(2)}%</td></tr>`;
+  }
+  html+='</tbody></table>';document.getElementById('portfolioTable').innerHTML=html;
+}
+
+// ── TRADES ─────────────────────────────────────────────────────────────────────
+async function loadTradesPage(){
+  populateSelects();
+  try{const trades=await authFetch('/api/trades?limit=200').then(r=>r.json());allTrades=trades;renderTradesTable(trades);}
+  catch(e){document.getElementById('tradesTable').innerHTML='<div class="loading">Error</div>';}
+}
+function filterTrades(plat){renderTradesTable(plat==='all'?allTrades:allTrades.filter(t=>t.platform===plat));}
+function renderTradesTable(trades){
+  if(!trades.length){document.getElementById('tradesTable').innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">No trades yet</div></div>';return;}
+  let html=`<table><thead><tr><th>Asset</th><th>Platform</th><th>Type</th><th>Qty</th><th>Price</th><th>Total</th><th>Status</th><th>Date</th></tr></thead><tbody>`;
+  for(const t of trades){
+    const tc=t.trade_type==='BUY'?'td-buy':'td-sell';
+    const statusColor=t.status==='AUTO_EXECUTED'?'var(--yellow)':t.status==='SIMULATED'?'var(--accent)':'var(--green)';
+    html+=`<tr><td><span class="td-asset">${t.asset}</span></td><td><span class="td-platform ${t.platform}">${t.platform}</span></td><td class="${tc}">${t.trade_type}</td><td>${t.quantity}</td><td>${fmt(t.price)}</td><td>${fmt(t.total_value)}</td><td><span style="font-size:11px;padding:2px 8px;border-radius:4px;background:rgba(0,0,0,.3);color:${statusColor}">${t.status}</span></td><td style="color:var(--muted)">${new Date(t.created_at).toLocaleDateString('en-IN')}</td></tr>`;
+  }
+  html+='</tbody></table>';document.getElementById('tradesTable').innerHTML=html;
+}
+async function executeTrade(){
+  const asset=document.getElementById('tradeAsset').value,type=document.getElementById('tradeType').value,qty=parseFloat(document.getElementById('tradeQty').value);
+  if(!asset||!qty||qty<=0){toast('Fill all fields','error');return;}
+  try{
+    const res=await authFetch('/api/trade',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset,trade_type:type,quantity:qty})});
+    const d=await res.json();toast(`${type} ${qty} ${asset} @ ${fmt(d.price)} ✓`);loadTradesPage();
+  }catch(e){toast('Trade failed','error');}
+}
+
+// ── AUTO TRADING ────────────────────────────────────────────────────────────────
+async function loadAutoSettings(){
+  try{
+    const settings=await authFetch('/api/auto-trade/settings').then(r=>r.json());
+    const colors={CoinDCX:'#d97706',Upstox:'#7c3aed',Groww:'#059669'};
+    let html='';
+    for(const s of settings){
+      html+=`<div class="setting-row">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:8px;height:8px;border-radius:50%;background:${colors[s.platform]}"></div>
+          <div>
+            <div style="font-weight:700;font-size:14px">${s.platform}</div>
+            <div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:2px">
+              Min confidence: <input type="number" id="conf_${s.platform}" value="${s.min_confidence}" min="50" max="99" style="width:50px;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:11px;text-align:center"/>%
+              &nbsp;Max per trade: <input type="number" id="pct_${s.platform}" value="${s.max_trade_pct}" min="1" max="50" style="width:50px;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:11px;text-align:center"/>% of holding
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span class="auto-badge ${s.enabled?'on':'off'}" id="badge_${s.platform}">${s.enabled?'AUTO ON':'AUTO OFF'}</span>
+          <label class="toggle"><input type="checkbox" ${s.enabled?'checked':''} onchange="saveAutoSettings('${s.platform}',this.checked)"/><span class="toggle-slider"></span></label>
+        </div>
+      </div>`;
+    }
+    document.getElementById('autoSettingsPanel').innerHTML=html||'<div class="empty"><div class="empty-text">No settings found</div></div>';
+  }catch(e){}
+}
+
+async function saveAutoSettings(platform, enabled){
+  const conf=parseInt(document.getElementById('conf_'+platform)?.value||75);
+  const pct=parseFloat(document.getElementById('pct_'+platform)?.value||5);
+  try{
+    await authFetch('/api/auto-trade/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform,enabled,min_confidence:conf,max_trade_pct:pct})});
+    const badge=document.getElementById('badge_'+platform);
+    if(badge){badge.textContent=enabled?'AUTO ON':'AUTO OFF';badge.className='auto-badge '+(enabled?'on':'off');}
+    toast(`${platform} auto-trading ${enabled?'enabled':'disabled'}`);
+    loadPlatformCards();
+  }catch(e){toast('Failed to save','error');}
+}
+
+async function runAutoAnalysis(){
+  const btn=document.getElementById('analyzeBtn');
+  btn.disabled=true;btn.textContent='🤖 Analysing...';
+  try{
+    const res=await authFetch('/api/auto-trade/analyze',{method:'POST'});
+    const data=await res.json();
+    if(data.status==='no_enabled_platforms'){toast('Enable auto-trading for at least one platform first','warn');btn.disabled=false;btn.textContent='🤖 Run AI Analysis';return;}
+    toast(`Analysis complete — ${data.total_actionable||0} actionable decisions`,'success');
+    loadPendingDecisions();loadAutoHistory();
+  }catch(e){toast('Analysis failed: '+e.message,'error');}
+  btn.disabled=false;btn.textContent='🤖 Run AI Analysis';
+}
+
+async function loadPendingDecisions(){
+  try{
+    const decisions=await authFetch('/api/auto-trade/pending').then(r=>r.json());
+    const count=decisions.length;
+    document.getElementById('pendingCount').textContent=count?`(${count} pending)`:'(none)';
+    const badge=document.getElementById('pendingBadge');
+    if(count>0){badge.style.display='';badge.textContent=count;}else{badge.style.display='none';}
+    if(!count){document.getElementById('pendingDecisions').innerHTML='<div class="empty" style="padding:24px"><div class="empty-icon">✅</div><div class="empty-text">No pending decisions. Run AI Analysis to generate new ones.</div></div>';return;}
+    let html='<div style="padding:14px 20px 0">';
+    for(const d of decisions){
+      const sc=d.signal==='BUY'?'td-buy':'td-sell';
+      const rc=d.risk_level==='LOW'?'var(--green)':d.risk_level==='HIGH'?'var(--red)':'var(--yellow)';
+      html+=`<div class="decision-card">
+        <div class="decision-header">
+          <div class="decision-asset">${d.asset}</div>
+          <span class="td-platform ${d.platform}" style="font-size:12px;padding:3px 10px;border-radius:5px">${d.platform}</span>
+        </div>
+        <div class="decision-meta">
+          <span class="${sc}" style="font-size:16px;font-weight:800;font-family:var(--mono)">${d.signal}</span>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--muted)">Confidence: <strong style="color:var(--text)">${d.confidence}%</strong></span>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--muted)">Qty: <strong style="color:var(--text)">${d.suggested_qty}</strong></span>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--muted)">@ <strong style="color:var(--text)">${fmt(d.entry_price)}</strong></span>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--muted)">Target: <strong style="color:var(--green)">${fmt(d.target_price)}</strong></span>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--muted)">SL: <strong style="color:var(--red)">${fmt(d.stop_loss)}</strong></span>
+          <span style="font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:4px;background:rgba(0,0,0,.3);color:${rc}">Risk: ${d.risk_level}</span>
+        </div>
+        <div class="decision-reasoning">💡 ${d.reasoning}</div>
+        <div class="decision-actions">
+          <button class="btn btn-success" style="font-size:12px;padding:7px 16px" onclick="approveDecision(${d.id})">✓ Approve & Execute</button>
+          <button class="btn btn-danger" style="font-size:12px;padding:7px 16px" onclick="rejectDecision(${d.id})">✕ Reject</button>
+        </div>
+      </div>`;
+    }
+    html+='</div>';
+    document.getElementById('pendingDecisions').innerHTML=html;
+  }catch(e){}
+}
+
+async function approveDecision(id){
+  try{
+    const res=await authFetch('/api/auto-trade/approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({log_id:id})});
+    const d=await res.json();
+    toast(`✓ Executed: ${d.type} ${d.qty} ${d.asset} @ ${fmt(d.price)}`,'success');
+    loadPendingDecisions();loadAutoHistory();
+  }catch(e){toast('Execution failed: '+e.message,'error');}
+}
+async function rejectDecision(id){
+  try{await authFetch('/api/auto-trade/reject/'+id,{method:'POST'});toast('Decision rejected');loadPendingDecisions();loadAutoHistory();}
+  catch(e){toast('Failed','error');}
+}
+async function rejectAll(){
+  try{await authFetch('/api/auto-trade/reject-all',{method:'POST'});toast('All decisions rejected');loadPendingDecisions();loadAutoHistory();}
+  catch(e){toast('Failed','error');}
+}
+async function loadAutoHistory(){
+  try{
+    const history=await authFetch('/api/auto-trade/history').then(r=>r.json());
+    if(!history.length){document.getElementById('autoHistoryTable').innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No history yet</div></div>';return;}
+    let html=`<table><thead><tr><th>Asset</th><th>Platform</th><th>Signal</th><th>Confidence</th><th>Entry</th><th>Target</th><th>Risk</th><th>Status</th><th>Date</th></tr></thead><tbody>`;
+    for(const d of history){
+      const sc=d.signal==='BUY'?'td-buy':'td-sell';
+      const statusColor=d.status==='EXECUTED'?'var(--green)':d.status==='REJECTED'?'var(--red)':'var(--yellow)';
+      html+=`<tr><td><span class="td-asset">${d.asset}</span></td><td><span class="td-platform ${d.platform}">${d.platform}</span></td><td class="${sc}">${d.signal}</td><td style="font-family:var(--mono)">${d.confidence}%</td><td>${fmt(d.entry_price)}</td><td>${fmt(d.target_price)}</td><td style="color:${d.risk_level==='LOW'?'var(--green)':d.risk_level==='HIGH'?'var(--red)':'var(--yellow)'}">${d.risk_level}</td><td><span style="font-size:11px;color:${statusColor}">${d.status}</span></td><td style="color:var(--muted);font-size:11px">${new Date(d.created_at).toLocaleDateString('en-IN')}</td></tr>`;
+    }
+    html+='</tbody></table>';document.getElementById('autoHistoryTable').innerHTML=html;
+  }catch(e){}
+}
+
+// ── AI SIGNALS ─────────────────────────────────────────────────────────────────
+function populateSelects(){
+  const assets=Object.keys({"ADANIPORTS":1,"ADANIPOWER":1,"ASHOKLEY":1,"BIOCON":1,"COLPAL":1,"DABUR":1,"DALMIABHAR":1,"HDFCBANK":1,"HINDALCO":1,"IOC":1,"MAZDOCK":1,"NIPHANGSNG":1,"RITES":1,"SBIGOLD":1,"TATAMOTORS":1,"ZYDUSLIFE":1,"BTC/INR":1,"ETH/INR":1,"SOL/INR":1,"BNB/INR":1,"XRP/INR":1,"NIFTY50":1,"SENSEX":1});
+  ['analyzeAsset','tradeAsset'].forEach(id=>{const el=document.getElementById(id);if(el&&!el.options.length)assets.forEach(a=>el.add(new Option(a,a)));});
+}
+async function getSignal(){
+  const asset=document.getElementById('analyzeAsset').value;if(!asset)return;
+  const result=document.getElementById('signalResult');result.className='signal-result visible';result.innerHTML='<div class="loading"><span class="spinner"></span>Analysing '+asset+'...</div>';
+  try{
+    const res=await authFetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset})});
+    const d=await res.json();if(!res.ok)throw new Error(d.detail||'Failed');
+    result.innerHTML=`<span class="signal-badge signal-${d.signal}">${d.signal}</span>
+      <div style="font-size:12px;color:var(--muted);font-family:var(--mono);margin-bottom:8px">${d.asset} · ${d.platform} · Confidence: ${d.confidence}%</div>
+      <div class="confidence-bar"><div class="confidence-fill" style="width:${d.confidence}%"></div></div>
+      <div class="signal-row">
+        <div class="signal-item"><label>ENTRY</label><span>${fmt(d.entry_price)}</span></div>
+        <div class="signal-item"><label>TARGET</label><span style="color:var(--green)">${fmt(d.target_price)}</span></div>
+        <div class="signal-item"><label>STOP LOSS</label><span style="color:var(--red)">${fmt(d.stop_loss)}</span></div>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div class="signal-item"><label>STRATEGY</label><span style="color:var(--accent2)">${d.strategy}</span></div>
+        <div class="signal-item"><label>HORIZON</label><span>${d.time_horizon}</span></div>
+        <div class="signal-item"><label>RISK</label><span style="color:${d.risk_level==='LOW'?'var(--green)':d.risk_level==='HIGH'?'var(--red)':'var(--yellow)'}">${d.risk_level}</span></div>
+      </div>
+      <div style="margin-top:10px;padding:10px;background:var(--surface);border-radius:8px;font-size:12px;line-height:1.6;color:var(--muted)">${d.reasoning}</div>`;
+    loadSignalsHistory();
+  }catch(e){result.innerHTML=`<div style="color:var(--red)">Error: ${e.message}</div>`;}
+}
+async function loadSignalsHistory(){
+  try{
+    const signals=await authFetch('/api/signals?limit=15').then(r=>r.json());
+    if(!signals.length){document.getElementById('signalsHistory').innerHTML='<div class="empty"><div class="empty-icon">📡</div><div class="empty-text">No signals yet</div></div>';return;}
+    let html='';
+    for(const s of signals){
+      const sc=s.signal==='BUY'?'td-buy':s.signal==='SELL'?'td-sell':'td-hold';
+      html+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div><span style="font-weight:700;font-size:13px">${s.asset}</span><span style="color:var(--muted);font-size:11px;margin-left:8px;font-family:var(--mono)">${s.platform}</span></div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="${sc}" style="font-family:var(--mono);font-size:12px;font-weight:700">${s.signal}</span>
+          <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">${s.confidence}%</span>
+          <span style="font-size:10px;color:var(--muted)">${new Date(s.created_at).toLocaleDateString('en-IN')}</span>
+        </div>
+      </div>`;
+    }
+    document.getElementById('signalsHistory').innerHTML=html;
+  }catch(e){}
+}
+
+// ── CHAT ───────────────────────────────────────────────────────────────────────
+async function sendChat(){
+  const input=document.getElementById('chatInput'),msg=input.value.trim();if(!msg)return;input.value='';
+  const box=document.getElementById('chatBox');
+  box.innerHTML+=`<div class="msg msg-user"><div class="msg-label">YOU</div>${msg}</div>`;
+  box.innerHTML+=`<div class="msg msg-ai" id="aiTyping"><div class="msg-label">ARTHA AI</div><span class="spinner"></span> Thinking...</div>`;
+  box.scrollTop=box.scrollHeight;
+  chatHistory.push({role:'user',content:msg});
+  try{
+    const res=await authFetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg,history:chatHistory.slice(-10)})});
+    const d=await res.json();
+    document.getElementById('aiTyping').outerHTML=`<div class="msg msg-ai"><div class="msg-label">ARTHA AI</div>${d.reply.replace(/\n/g,'<br>')}</div>`;
+    chatHistory.push({role:'assistant',content:d.reply});
+  }catch(e){document.getElementById('aiTyping').outerHTML=`<div class="msg msg-ai" style="color:var(--red)">Error: ${e.message}</div>`;}
+  box.scrollTop=box.scrollHeight;
+}
+
+// ── KEYS ───────────────────────────────────────────────────────────────────────
+function loginWithUpstox(){
+  const token = getToken();
+  if(!token){ toast('Please log in to ARTHA first','error'); return; }
+
+  // Pass JWT as query param — popup windows can't send Authorization headers
+  const popup = window.open(
+    '/upstox/login?token=' + encodeURIComponent(token),
+    'upstox_login',
+    'width=520,height=680,top=100,left=200,scrollbars=yes'
+  );
+  if(!popup){
+    toast('Popup blocked — please allow popups for this site and try again','error');
+    return;
+  }
+  // Poll to detect when popup closes, then refresh key status
+  const iv = setInterval(()=>{
+    if(popup.closed){
+      clearInterval(iv);
+      setTimeout(()=>{ loadKeys(); checkTokenExpiry(); }, 800);
+    }
+  }, 500);
+}
+
+async function generateGrowwToken(){
+  const btn=document.getElementById('growwTokenBtn');
+  const statusEl=document.getElementById('growwTokenStatus');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span> Generating...';
+  statusEl.innerHTML='Contacting Groww API...';
+  try{
+    const data=await authFetch('/api/groww/generate-token',{method:'POST'}).then(r=>r.json());
+    if(data.status==='SUCCESS'){
+      statusEl.innerHTML=`<span style="color:var(--green)">✓ Token saved</span><br/><span style="color:var(--muted)">${data.message||''}</span>`;
+      toast('Groww token generated ✓');
+      loadKeys();
+    } else if(data.status==='APPROVAL_PENDING'){
+      statusEl.innerHTML=`<span style="color:var(--yellow)">⚠ Approval needed</span><br/><span style="color:var(--muted);font-size:10px">Groww app → Profile → Trading APIs → Approve</span>`;
+      toast('Approve session in Groww app first','warn');
+    } else {
+      statusEl.innerHTML=`<span style="color:var(--red)">✗ ${data.error||'Failed'}</span>`;
+      toast('Groww token failed: '+(data.error||'Check keys'),'error');
+    }
+  }catch(e){
+    statusEl.innerHTML=`<span style="color:var(--red)">✗ ${e.message}</span>`;
+    toast('Error: '+e.message,'error');
+  }
+  btn.disabled=false;
+  btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> Generate Token';
+}
+
+async function testCoinDCX(){
+  const btn=document.getElementById('coindcxTestBtn');
+  const statusEl=document.getElementById('coindcxConnStatus');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span> Testing...';
+  statusEl.innerHTML='Connecting to CoinDCX...';
+  try{
+    const data=await authFetch('/api/coindcx/test-connection',{method:'POST'}).then(r=>r.json());
+    if(data.status==='SUCCESS'){
+      statusEl.innerHTML=`<span style="color:var(--green)">✓ Connected</span><br/><span style="color:var(--muted)">${data.message||''}</span>`;
+      toast('CoinDCX connected ✓');
+      loadKeys();
+    } else {
+      statusEl.innerHTML=`<span style="color:var(--red)">✗ ${data.error||'Failed'}</span>`;
+      toast('CoinDCX failed: '+(data.error||'Check keys'),'error');
+    }
+  }catch(e){
+    statusEl.innerHTML=`<span style="color:var(--red)">✗ ${e.message}</span>`;
+    toast('Error: '+e.message,'error');
+  }
+  btn.disabled=false;
+  btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Test Connection';
+}
+
+async function loadKeys(){
+  try{
+    const [keys, status] = await Promise.all([
+      authFetch('/api/keys').then(r=>r.json()),
+      authFetch('/api/keys/token-status').then(r=>r.json())
+    ]);
+    const km={};keys.forEach(k=>km[k.platform]=k);
+
+    // Populate static input fields with saved values
+    ['Upstox','CoinDCX','Groww'].forEach(p=>{
+      const k=km[p]||{};
+      const keyEl=document.getElementById('key_'+p);
+      const secEl=document.getElementById('secret_'+p);
+      if(keyEl && k.api_key) keyEl.value=k.api_key;
+      if(secEl && k.api_secret) secEl.value=k.api_secret;
+
+      // Update badge on card
+      const s=status[p]||{};
+      const hasKeys=s.has_api_key&&s.has_api_secret;
+      const hasToken=s.has_access_token;
+      const expired=s.token_expired;
+      const card=keyEl?.closest('.key-card');
+      if(card){
+        // Remove old badge if any
+        card.querySelector('.status-badge')?.remove();
+        const badge=document.createElement('span');
+        badge.className='status-badge';
+        badge.style.cssText='font-size:10px;padding:2px 9px;border-radius:20px;font-family:var(--mono);font-weight:600;margin-left:auto';
+        if(p==='Upstox'||p==='Groww'){
+          if(hasToken&&!expired){badge.style.background='rgba(34,197,94,.15)';badge.style.color='var(--green)';badge.textContent='✓ Token Active';}
+          else if(expired){badge.style.background='rgba(239,68,68,.15)';badge.style.color='var(--red)';badge.textContent='⚠ Expired';}
+          else if(hasKeys){badge.style.background='rgba(245,158,11,.15)';badge.style.color='var(--yellow)';badge.textContent='⚠ Needs Token';}
+          else{badge.style.background='rgba(100,116,139,.15)';badge.style.color='var(--muted)';badge.textContent='Not Set';}
+        } else {
+          if(hasToken){badge.style.background='rgba(34,197,94,.15)';badge.style.color='var(--green)';badge.textContent='✓ Connected';}
+          else if(hasKeys){badge.style.background='rgba(245,158,11,.15)';badge.style.color='var(--yellow)';badge.textContent='⚠ Not Tested';}
+          else{badge.style.background='rgba(100,116,139,.15)';badge.style.color='var(--muted)';badge.textContent='Not Set';}
+        }
+        card.querySelector('.key-header').appendChild(badge);
+      }
+    });
+
+    // Update action card statuses
+    const su=status['Upstox']||{};
+    const upstoxEl=document.getElementById('upstoxTokenStatus');
+    if(upstoxEl){
+      if(su.has_access_token&&!su.token_expired) upstoxEl.innerHTML=`<span style="color:var(--green)">✓ Token active</span>${su.token_updated_at?`<br/><span style="color:var(--muted);font-size:10px">Saved: ${new Date(su.token_updated_at).toLocaleString('en-IN')}</span>`:''}`;
+      else if(su.token_expired) upstoxEl.innerHTML=`<span style="color:var(--red)">✗ Expired — re-login</span>`;
+      else if(su.has_api_key&&su.has_api_secret) upstoxEl.innerHTML='<span style="color:var(--yellow)">⚠ Keys saved — click Login</span>';
+      else upstoxEl.innerHTML='<span style="color:var(--muted)">Save API Key + Secret first</span>';
+    }
+    const sg=status['Groww']||{};
+    const growwEl=document.getElementById('growwTokenStatus');
+    if(growwEl){
+      if(sg.has_access_token&&!sg.token_expired) growwEl.innerHTML=`<span style="color:var(--green)">✓ Token active</span>${sg.token_updated_at?`<br/><span style="color:var(--muted);font-size:10px">Saved: ${new Date(sg.token_updated_at).toLocaleString('en-IN')}</span>`:''}`;
+      else if(sg.token_expired) growwEl.innerHTML='<span style="color:var(--red)">✗ Expired — regenerate</span>';
+      else if(sg.has_api_key&&sg.has_api_secret) growwEl.innerHTML='<span style="color:var(--yellow)">⚠ Approve in Groww app → Generate Token</span>';
+      else growwEl.innerHTML='<span style="color:var(--muted)">Save API Key + Secret first</span>';
+    }
+    const sc=status['CoinDCX']||{};
+    const cdcxEl=document.getElementById('coindcxConnStatus');
+    if(cdcxEl){
+      if(sc.has_access_token) cdcxEl.innerHTML=`<span style="color:var(--green)">✓ Connected</span>${sc.token_updated_at?`<br/><span style="color:var(--muted);font-size:10px">Tested: ${new Date(sc.token_updated_at).toLocaleString('en-IN')}</span>`:''}`;
+      else if(sc.has_api_key&&sc.has_api_secret) cdcxEl.innerHTML='<span style="color:var(--yellow)">⚠ Keys saved — click Test Connection</span>';
+      else cdcxEl.innerHTML='<span style="color:var(--muted)">Save API Key + Secret first</span>';
+    }
+  }catch(e){ console.error('loadKeys error:',e); }
+}
+
+async function saveKey(platform){
+  const api_key=(document.getElementById('key_'+platform)?.value||'').trim();
+  const api_secret=(document.getElementById('secret_'+platform)?.value||'').trim();
+  if(!api_key){ toast(platform+': API Key cannot be empty','error'); return; }
+  try{
+    const res=await authFetch('/api/keys',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform,api_key,api_secret})});
+    if(!res.ok) throw new Error(await res.text());
+    toast(platform+' keys saved ✓');
+    loadKeys();
+  }catch(e){ toast('Save failed: '+e.message,'error'); }
+}
+
+// ── LOGS ───────────────────────────────────────────────────────────────────────
+async function loadLogs(){
+  const container=document.getElementById('logsContainer');
+  if(container) container.innerHTML='<div class="loading"><span class="spinner"></span> Loading...</div>';
+  try{
+    const logs=await authFetch('/api/logs?limit=100').then(r=>r.json());
+    if(!logs.length){
+      if(container) container.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No activity yet</div></div>';
+      return;
+    }
+    let html='';
+    for(const l of logs)
+      html+=`<div class="log-item"><span class="log-type log-${l.log_type}">${l.log_type}</span><span class="log-msg" style="flex:1;color:var(--text);font-size:12px">${l.message}</span><span style="color:var(--muted);font-size:11px;flex-shrink:0">${new Date(l.created_at).toLocaleTimeString('en-IN')}</span></div>`;
+    if(container) container.innerHTML=html;
+  }catch(e){
+    if(container) container.innerHTML=`<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text" style="color:var(--red)">Error loading logs: ${e.message}</div></div>`;
+  }
+}
+async function clearLogs(){await authFetch('/api/logs',{method:'DELETE'});toast('Logs cleared');loadLogs();}
+
+// ── PORTFOLIO SYNC ─────────────────────────────────────────────────────────────
+async function syncPortfolio(){
+  const btn=document.getElementById('syncBtn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span> Syncing...';
+  try{
+    const data=await authFetch('/api/portfolio/sync',{method:'POST'}).then(r=>r.json());
+    let msg='';
+    if(data.synced?.length)   msg+=data.synced.join(', ')+' synced. ';
+    if(data.skipped?.length)  msg+=data.skipped.length+' skipped.';
+    if(data.errors?.length){
+      toast('Sync issues: '+data.errors.join(' | '),'error');
+    } else {
+      toast(msg||'Portfolio synced ✓','success');
+    }
+    // Show a detail toast for each result
+    if(data.synced?.length) console.log('Synced:', data.synced);
+    if(data.errors?.length) console.warn('Errors:', data.errors);
+
+    // Refresh dashboard after sync
+    if(data.synced?.length) setTimeout(()=>loadDashboard(),500);
+  }catch(e){
+    toast('Sync failed: '+e.message,'error');
+  }
+  btn.disabled=false;
+  btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Sync Portfolio';
+}
+
+// ── TOKEN EXPIRY CHECK ─────────────────────────────────────────────────────────
+async function checkTokenExpiry(){
+  try{
+    const status=await authFetch('/api/keys/token-status').then(r=>r.json());
+    const u=status['Upstox']||{};
+    const banner=document.getElementById('tokenExpiryBanner');
+    const detail=document.getElementById('tokenExpiryDetail');
+    if(!banner) return;
+    if(u.token_expired){
+      banner.style.display='flex';
+      detail.textContent=`Token is ${u.token_age_hours}h old — expired. Re-login takes 10 seconds.`;
+    } else if(!u.has_access_token && u.has_api_key){
+      banner.style.display='flex';
+      detail.textContent='No token yet — click Re-login Upstox to generate one.';
+    } else {
+      banner.style.display='none';
+    }
+  }catch(e){}
+}
+
+async function updateGeminiUsage(){
+  try{
+    const u=await authFetch('/api/gemini/usage').then(r=>r.json());
+    const el=document.getElementById('geminiUsage');
+    if(!el) return;
+    const color=u.rpd_remaining<100?'var(--red)':u.rpd_remaining<300?'var(--yellow)':'var(--muted)';
+    el.innerHTML=`<span style="color:${color}">AI: ${u.rpd_used}/${u.rpd_limit} today · ${u.rpm_used}/${u.rpm_limit}/min</span>`;
+    el.title=`Gemini API — ${u.rpd_remaining} requests remaining today, ${u.rpm_remaining} this minute`;
+  }catch(e){}
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────────
+// Show empty state on load — data only loads when user clicks Refresh
+function showEmptyDashboard(){
+  const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+  set('totalInvested','—'); set('totalCurrent','—'); set('totalPnl','—'); set('totalReturn','—');
+  const pg=document.getElementById('platformGrid');
+  if(pg) pg.innerHTML=`
+    <div class="card" style="grid-column:1/-1;text-align:center;padding:36px">
+      <div style="font-size:32px;margin-bottom:12px">📊</div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:8px">Dashboard is ready</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Click Refresh to load your portfolio data</div>
+      <button class="btn btn-primary" onclick="refreshAll()" style="font-size:13px;padding:10px 24px">Load Dashboard</button>
+    </div>`;
+  const tg=document.getElementById('tickerGrid');
+  if(tg) tg.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--muted);font-family:var(--mono);font-size:13px">Click <strong style="color:var(--text)">Load Dashboard</strong> to fetch live prices</div>`;
+  const cp=document.getElementById('coindcxPortfolioPanel');
+  if(cp) cp.innerHTML=`<div class="card" style="text-align:center;padding:28px"><div style="font-size:13px;color:var(--muted)">Click Refresh to load CoinDCX portfolio</div></div>`;
+  const uht=document.getElementById('upstoxHoldingsTable');
+  if(uht) uht.innerHTML=`<div class="empty" style="padding:20px"><div class="empty-text" style="font-size:12px">Click Manual Refresh to fetch Upstox holdings</div></div>`;
+  const ght=document.getElementById('growwHoldingsTable');
+  if(ght) ght.innerHTML=`<div class="empty" style="padding:16px"><div class="empty-text" style="font-size:12px">Click Manual Refresh to fetch Groww holdings</div></div>`;
+  const cs=document.getElementById('coindcxCacheStatus');
+  if(cs) cs.textContent='Click Refresh to load';
+  const pc=document.getElementById('priceCount');
+  if(pc) pc.textContent='';
+  document.getElementById('lastUpdate').textContent='Ready — click Refresh to load data';
+}
+
+showEmptyDashboard();
+checkTokenExpiry();
+updateGeminiUsage();
+
+// Poll only lightweight endpoints (no AI, no heavy data fetches)
+setInterval(()=>{
+  authFetch('/api/auto-trade/pending').then(r=>r.json()).then(d=>{
+    const b=document.getElementById('pendingBadge');
+    if(d.length>0){b.style.display='';b.textContent=d.length;}else b.style.display='none';
+  }).catch(()=>{});
+  updateGeminiUsage();
+  checkTokenExpiry();
+},6000);
+document.getElementById('lastUpdate').textContent='Ready — click Refresh to load data';
+</script>
+</body>
+</html>
