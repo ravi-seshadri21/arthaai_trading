@@ -1,0 +1,20 @@
+# Secrets
+*.pem
+.env
+*.env
+
+# Database (contains user accounts and broker keys)
+*.db
+*.sqlite3
+
+# Python
+venv/
+myenv/
+__pycache__/
+*.pyc
+
+# Logs / OS / IDE
+*.log
+.DS_Store
+.vscode/
+.idea/
